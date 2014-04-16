@@ -359,7 +359,7 @@
     <Content Include="bin\amd64\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Web.config.Example">
+    <None Include="Example\Web.Example.config">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
