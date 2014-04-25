@@ -1,20 +1,16 @@
-﻿using Autofac;
+﻿using System.Web.Http;
+using System.Web.Mvc;
+using Autofac;
 using Autofac.Integration.Mvc;
 using Autofac.Integration.WebApi;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Web.Http;
-using System.Web.Mvc;
 using Umbraco.Core;
+using Umbraco.Core.Persistence;
+using Umbraco.Core.Services;
 using Umbraco.Web;
-using Umbraco.Web.Mvc;
 using UmbracoWebServices.Controllers;
 using UmbracoWebServices.Services;
 
-namespace UmbracoWebServices.App_Start
+namespace UmbracoWebServices
 {
     public class EventHandler : IApplicationEventHandler
     {
@@ -34,9 +30,9 @@ namespace UmbracoWebServices.App_Start
             builder.RegisterApiControllers(typeof(UmbracoUserApiController).Assembly);
 
             //add custom class to the container as Transient instance
-            builder.RegisterType<GetUserTypeService>().As<IGetUserTypeService>();
             builder.RegisterType<UserAdminService>().As<IUserAdminService>();
-            builder.RegisterType<SHA1HashService>().As<IHashService>();
+            builder.RegisterType<RepositoryFactory>();
+            builder.RegisterType<UserService>().As<IUserService>();
 
             var container = builder.Build();
             DependencyResolver.SetResolver(new AutofacDependencyResolver(container));
