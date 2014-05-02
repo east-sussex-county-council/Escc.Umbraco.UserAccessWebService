@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Umbraco.Core.Persistence;
 using Umbraco.Core.Persistence.Querying;
 using Umbraco.Core.Services;
 using UmbracoWebServices.Models;
@@ -70,6 +71,8 @@ namespace UmbracoWebServices.Services
             //userService.SavePassword(user, model.NewPassword);
 
             //var x = (Umbraco.Core.Models.Membership.User) userService.SavePassword(null, null);
+
+            var userService = new UserService(new RepositoryFactory());
 
             var user = userService.GetUserById(model.UserId);
 
