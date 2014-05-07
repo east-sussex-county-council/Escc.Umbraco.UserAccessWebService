@@ -51,6 +51,21 @@ namespace UmbracoWebServices.Controllers
             }
         }
 
+        [HttpGet]
+        public HttpResponseMessage GetUserById(int id)
+        {
+            try
+            {
+                var users = userAdminService.LookupUserById(id);
+
+                return Request.CreateResponse(HttpStatusCode.OK, users);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadGateway, ex);
+            }
+        }
+
         [HttpPost]
         public HttpResponseMessage PostNewUsers(UmbracoUserModel model)
         {
@@ -127,7 +142,7 @@ namespace UmbracoWebServices.Controllers
         }
 
         [HttpGet]
-        public HttpResponseMessage GetContentTree()
+        public HttpResponseMessage GetContentRoot()
         {
             try
             {
@@ -142,7 +157,7 @@ namespace UmbracoWebServices.Controllers
         }
 
         [HttpGet]
-        public HttpResponseMessage GetContentTree(int id)
+        public HttpResponseMessage GetContentChild(int id)
         {
             try
             {

@@ -7,13 +7,13 @@ namespace UmbracoWebServices.Models
 {
     public class ContentTreeModel
     {
-        public int Id { get; set; }
+        public int PageId { get; set; }
 
         public int ParentId { get; set; }
 
         public int RootId { get; set; }
 
-        public string Name { get; set; }
+        public string PageName { get; set; }
 
         public bool Published { get; set; }
 

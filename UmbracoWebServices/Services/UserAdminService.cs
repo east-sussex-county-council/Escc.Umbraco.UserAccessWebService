@@ -25,9 +25,9 @@ namespace UmbracoWebServices.Services
             var modelList = userService.FindByEmail(emailAddress, 0, 10, out totalRecords, StringPropertyMatchType.Exact)
                 .Select(x => new UmbracoUserModel()
                 {
-                    userName = x.Username,
-                    fullName = x.Name,
-                    emailAddress = x.Email,
+                    UserName = x.Username,
+                    FullName = x.Name,
+                    EmailAddress = x.Email,
                     UserId = x.Id,
                     Lock = x.IsLockedOut
                 }).ToList();
@@ -41,9 +41,9 @@ namespace UmbracoWebServices.Services
             var modelList = userService.FindByUsername(username, 0, 10, out totalRecords, StringPropertyMatchType.Exact)
                 .Select(x => new UmbracoUserModel()
                 {
-                    userName = x.Username,
-                    fullName = x.Name,
-                    emailAddress = x.Email,
+                    UserName = x.Username,
+                    FullName = x.Name,
+                    EmailAddress = x.Email,
                     UserId = x.Id,
                     Lock = x.IsLockedOut
                 }).ToList();
@@ -51,11 +51,25 @@ namespace UmbracoWebServices.Services
             return modelList;
         }
 
+        public UmbracoUserModel LookupUserById(int id)
+        {
+            var user = userService.GetUserById(id);
+
+            var model = new UmbracoUserModel
+            {
+                UserName = user.Username,
+                FullName = user.Name,
+                UserId = user.Id
+            };
+
+            return model;
+        }
+
         public void CreateUmbracoUser(UmbracoUserModel model)
         {
-            var user = userService.CreateWithIdentity(model.fullName, model.emailAddress, Guid.NewGuid().ToString(), "NewUser");
+            var user = userService.CreateWithIdentity(model.FullName, model.EmailAddress, Guid.NewGuid().ToString(), "NewUser");
 
-            user.Name = model.fullName;
+            user.Name = model.FullName;
 
             userService.Save(user);
         }
@@ -95,8 +109,8 @@ namespace UmbracoWebServices.Services
 
             return rootContent.Select(root => new ContentTreeModel
             {
-                Id = root.Id,
-                Name = root.Name,
+                PageId = root.Id,
+                PageName = root.Name,
                 RootId = root.Id,
                 Published = root.Published,
                 PublishedDate = root.UpdateDate
@@ -109,10 +123,10 @@ namespace UmbracoWebServices.Services
 
             return childrenOfRoot.Select(child => new ContentTreeModel
             {
-                Id = child.Id,
+                PageId = child.Id,
                 ParentId = child.ParentId,
                 RootId = root,
-                Name = child.Name,
+                PageName = child.Name,
                 Published = child.Published,
                 PublishedDate = child.UpdateDate
             }).ToList();

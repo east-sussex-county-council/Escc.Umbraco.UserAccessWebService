@@ -11,6 +11,8 @@ namespace UmbracoWebServices.Services
 
         System.Collections.Generic.IList<UmbracoWebServices.Models.UmbracoUserModel> LookupUserByUsername(string emailaddress);
 
+        UmbracoUserModel LookupUserById(int id);
+
         void ResetUsersPassword(UmbracoWebServices.Models.PasswordResetModel model);
 
         void DisableUser(Models.UmbracoUserModel model);
