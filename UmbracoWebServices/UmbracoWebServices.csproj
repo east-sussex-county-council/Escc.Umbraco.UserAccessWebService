@@ -265,6 +265,7 @@
     </Compile>
     <Compile Include="Models\ContentTreeModel.cs" />
     <Compile Include="Models\PasswordResetModel.cs" />
+    <Compile Include="Models\PermissionsModel.cs" />
     <Compile Include="Models\UmbracoUserModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\Authorisation.cs" />

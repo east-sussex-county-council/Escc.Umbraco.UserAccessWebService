@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Umbraco.Core.Persistence;
@@ -22,15 +23,16 @@ namespace UmbracoWebServices.Services
         public IList<UmbracoUserModel> LookupUserByEmail(string emailAddress)
         {
             int totalRecords;
-            var modelList = userService.FindByEmail(emailAddress, 0, 10, out totalRecords, StringPropertyMatchType.Exact)
-                .Select(x => new UmbracoUserModel()
-                {
-                    UserName = x.Username,
-                    FullName = x.Name,
-                    EmailAddress = x.Email,
-                    UserId = x.Id,
-                    Lock = x.IsLockedOut
-                }).ToList();
+            var modelList =
+                userService.FindByEmail(emailAddress, 0, 10, out totalRecords, StringPropertyMatchType.Exact)
+                    .Select(x => new UmbracoUserModel()
+                    {
+                        UserName = x.Username,
+                        FullName = x.Name,
+                        EmailAddress = x.Email,
+                        UserId = x.Id,
+                        Lock = x.IsLockedOut
+                    }).ToList();
 
             return modelList;
         }
@@ -67,7 +69,8 @@ namespace UmbracoWebServices.Services
 
         public void CreateUmbracoUser(UmbracoUserModel model)
         {
-            var user = userService.CreateWithIdentity(model.FullName, model.EmailAddress, Guid.NewGuid().ToString(), "NewUser");
+            var user = userService.CreateWithIdentity(model.FullName, model.EmailAddress, Guid.NewGuid().ToString(),
+                "NewUser");
 
             user.Name = model.FullName;
 
@@ -76,18 +79,6 @@ namespace UmbracoWebServices.Services
 
         public void ResetUsersPassword(PasswordResetModel model)
         {
-            //var hashedPassword = hashService.HashPassword(model.NewPassword);
-
-            //User.GetUser(model.UserId).Password = hashedPassword;
-
-            //var user = userService.GetUserById(model.UserId);
-
-            //userService.SavePassword(user, model.NewPassword);
-
-            //var x = (Umbraco.Core.Models.Membership.User) userService.SavePassword(null, null);
-
-            var userService = new UserService(new RepositoryFactory());
-
             var user = userService.GetUserById(model.UserId);
 
             userService.SavePassword(user, model.NewPassword);
@@ -130,6 +121,57 @@ namespace UmbracoWebServices.Services
                 Published = child.Published,
                 PublishedDate = child.UpdateDate
             }).ToList();
+        }
+
+        public void SetUserPagePermissions(PermissionsModel model)
+        {
+            var content = contentService.GetById(model.PageId);
+
+            var modelList = new List<int> { model.UserId };
+
+            var permissionList = new char[6];
+
+            permissionList[0] = '7';
+            permissionList[1] = 'A';
+            permissionList[2] = 'C';
+            permissionList[3] = 'F';
+            permissionList[4] = 'K';
+            permissionList[5] = 'U';
+
+            foreach (var permission in permissionList)
+            {
+                contentService.AssignContentPermission(content, permission, modelList);
+            }
+        }
+
+        public void RemoveUserPagePermissions(PermissionsModel model)
+        {
+            var content = contentService.GetById(model.PageId);
+
+            var modelList = new List<int> { model.UserId };
+
+            var permissionList = new char[6];
+
+            permissionList[0] = '-';
+            permissionList[1] = '-';
+            permissionList[2] = '-';
+            permissionList[3] = '-';
+            permissionList[4] = '-';
+            permissionList[5] = '-';
+
+            foreach (var permission in permissionList)
+            {
+                contentService.AssignContentPermission(content, permission, modelList);
+            }
+        }
+
+        public IList<PermissionsModel> CheckUserPermissions(int userId)
+        {
+            var user = userService.GetUserById(userId);
+
+            var userPermissions = userService.GetPermissions(user);
+
+            return userPermissions.Select(page => new PermissionsModel { UserId = page.UserId, PageId = page.EntityId }).ToList();
         }
     }
 }

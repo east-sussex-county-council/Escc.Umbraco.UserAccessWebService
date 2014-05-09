@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UmbracoWebServices.Models;
 
 namespace UmbracoWebServices.Services
@@ -22,5 +23,11 @@ namespace UmbracoWebServices.Services
         System.Collections.Generic.IList<ContentTreeModel> ContentRoot();
 
         System.Collections.Generic.IList<ContentTreeModel> ContentChild(int root);
+
+        void SetUserPagePermissions(PermissionsModel model);
+
+        void RemoveUserPagePermissions(PermissionsModel model);
+
+        IList<PermissionsModel> CheckUserPermissions(int userId);
     }
 }
