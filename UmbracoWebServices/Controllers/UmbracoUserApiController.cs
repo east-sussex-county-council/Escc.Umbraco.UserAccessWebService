@@ -21,6 +21,7 @@ namespace UmbracoWebServices.Controllers
             this.userAdminService = userAdminService;
         }
 
+        //[Authorisation.RequireHttpsAttribute]
         [HttpGet]
         public HttpResponseMessage GetAllUsersByEmail(string emailaddress)
         {
@@ -36,6 +37,7 @@ namespace UmbracoWebServices.Controllers
             }
         }
 
+        //[Authorisation.RequireHttpsAttribute]
         [HttpGet]
         public HttpResponseMessage GetAllUsersByUsername(string username)
         {
@@ -51,6 +53,7 @@ namespace UmbracoWebServices.Controllers
             }
         }
 
+        //[Authorisation.RequireHttpsAttribute]
         [HttpGet]
         public HttpResponseMessage GetUserById(int id)
         {
@@ -66,6 +69,7 @@ namespace UmbracoWebServices.Controllers
             }
         }
 
+        //[Authorisation.RequireHttpsAttribute]
         [HttpPost]
         public HttpResponseMessage PostNewUsers(UmbracoUserModel model)
         {
@@ -81,6 +85,7 @@ namespace UmbracoWebServices.Controllers
             }
         }
 
+        //[Authorisation.RequireHttpsAttribute]
         [HttpPost]
         public HttpResponseMessage PostResetPassword(PasswordResetModel model)
         {
@@ -96,6 +101,7 @@ namespace UmbracoWebServices.Controllers
             }
         }
 
+        //[Authorisation.RequireHttpsAttribute]
         [HttpPost]
         public HttpResponseMessage PostCreateUser(UmbracoUserModel model)
         {
@@ -111,6 +117,7 @@ namespace UmbracoWebServices.Controllers
             }
         }
 
+        //[Authorisation.RequireHttpsAttribute]
         [HttpPost]
         public HttpResponseMessage PostDisableUser(UmbracoUserModel model)
         {
@@ -126,6 +133,7 @@ namespace UmbracoWebServices.Controllers
             }
         }
 
+        //[Authorisation.RequireHttpsAttribute]
         [HttpPost]
         public HttpResponseMessage PostEnableUser(UmbracoUserModel model)
         {
@@ -141,6 +149,7 @@ namespace UmbracoWebServices.Controllers
             }
         }
 
+        //[Authorisation.RequireHttpsAttribute]
         [HttpGet]
         public HttpResponseMessage GetContentRoot()
         {
@@ -156,6 +165,7 @@ namespace UmbracoWebServices.Controllers
             }
         }
 
+        //[Authorisation.RequireHttpsAttribute]
         [HttpGet]
         public HttpResponseMessage GetContentChild(int id)
         {
@@ -171,6 +181,7 @@ namespace UmbracoWebServices.Controllers
             }
         }
 
+        //[Authorisation.RequireHttpsAttribute]
         [HttpPost]
         public HttpResponseMessage PostSetPermissions(PermissionsModel model)
         {
@@ -186,6 +197,7 @@ namespace UmbracoWebServices.Controllers
             }
         }
 
+        //[Authorisation.RequireHttpsAttribute]
         [HttpPost]
         public HttpResponseMessage PostRemovePermissions(PermissionsModel model)
         {
@@ -201,6 +213,7 @@ namespace UmbracoWebServices.Controllers
             }
         }
 
+        //[Authorisation.RequireHttpsAttribute]
         [HttpGet]
         public HttpResponseMessage GetCheckUserPermissions(int userId)
         {
