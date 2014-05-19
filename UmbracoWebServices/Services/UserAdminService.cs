@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using umbraco.cms.presentation.create.controls;
 using Umbraco.Core.Persistence;
 using Umbraco.Core.Persistence.Querying;
 using Umbraco.Core.Services;
@@ -172,6 +173,25 @@ namespace UmbracoWebServices.Services
             var userPermissions = userService.GetPermissions(user);
 
             return userPermissions.Select(page => new PermissionsModel { UserId = page.UserId, PageId = page.EntityId }).ToList();
+        }
+
+        public void ClonePermissions(PermissionsModel model)
+        {
+            var sourceUser = userService.GetUserById(model.UserId);
+
+            var userPermissions = userService.GetPermissions(sourceUser);
+
+            var modelList = new List<int> { model.TargetId };
+
+            foreach (var permissions in userPermissions)
+            {
+                var content = contentService.GetById(permissions.EntityId);
+
+                foreach (var permission in permissions.AssignedPermissions)
+                {
+                    contentService.AssignContentPermission(content, permission[0], modelList);
+                }
+            }
         }
     }
 }

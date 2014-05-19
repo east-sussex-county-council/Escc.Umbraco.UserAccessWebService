@@ -29,5 +29,7 @@ namespace UmbracoWebServices.Services
         void RemoveUserPagePermissions(PermissionsModel model);
 
         IList<PermissionsModel> CheckUserPermissions(int userId);
+
+        void ClonePermissions(PermissionsModel model);
     }
 }

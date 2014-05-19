@@ -228,5 +228,21 @@ namespace UmbracoWebServices.Controllers
                 return Request.CreateErrorResponse(HttpStatusCode.BadGateway, ex);
             }
         }
+
+        //[Authorisation.RequireHttpsAttribute]
+        [HttpPost]
+        public HttpResponseMessage PostCloneUserPermissions(PermissionsModel model)
+        {
+            try
+            {
+                userAdminService.ClonePermissions(model);
+
+                return Request.CreateResponse(HttpStatusCode.OK);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+            }
+        }
     }
 }

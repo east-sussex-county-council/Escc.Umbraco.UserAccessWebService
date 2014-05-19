@@ -14,5 +14,7 @@ namespace UmbracoWebServices.Models
         public int UserId { get; set; }
 
         public string Created { get; set; }
+
+        public int TargetId { get; set; }
     }
 }
