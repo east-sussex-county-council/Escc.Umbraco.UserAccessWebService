@@ -31,5 +31,7 @@ namespace UmbracoWebServices.Services
         IList<PermissionsModel> CheckUserPermissions(int userId);
 
         void ClonePermissions(PermissionsModel model);
+
+        ContentTreeModel GetPage(int pageId);
     }
 }

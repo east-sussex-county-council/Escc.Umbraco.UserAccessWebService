@@ -16,5 +16,11 @@ namespace UmbracoWebServices.Models
         public string Created { get; set; }
 
         public int TargetId { get; set; }
+
+        public string PageName { get; set; }
+
+        public string FullName { get; set; }
+
+        public string EmailAddress { get; set; }
     }
 }

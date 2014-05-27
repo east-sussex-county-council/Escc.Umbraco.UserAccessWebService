@@ -62,7 +62,8 @@ namespace UmbracoWebServices.Services
             {
                 UserName = user.Username,
                 FullName = user.Name,
-                UserId = user.Id
+                UserId = user.Id,
+                EmailAddress = user.Email
             };
 
             return model;
@@ -172,7 +173,7 @@ namespace UmbracoWebServices.Services
 
             var userPermissions = userService.GetPermissions(user);
 
-            return userPermissions.Select(page => new PermissionsModel { UserId = page.UserId, PageId = page.EntityId }).ToList();
+            return userPermissions.Select(page => new PermissionsModel { UserId = page.UserId, FullName = userService.GetUserById(page.UserId).Name, EmailAddress = userService.GetUserById(page.UserId).Email, PageId = page.EntityId, PageName = contentService.GetById(page.EntityId).Name }).ToList();
         }
 
         public void ClonePermissions(PermissionsModel model)
@@ -192,6 +193,15 @@ namespace UmbracoWebServices.Services
                     contentService.AssignContentPermission(content, permission[0], modelList);
                 }
             }
+        }
+
+        public ContentTreeModel GetPage(int pageId)
+        {
+            var page = contentService.GetById(pageId);
+
+            var model = new ContentTreeModel { PageName = page.Name };
+
+            return model;
         }
     }
 }
