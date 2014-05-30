@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using umbraco.cms.presentation.create.controls;
+using Umbraco.Core.Models.Membership;
 using Umbraco.Core.Persistence;
 using Umbraco.Core.Persistence.Querying;
 using Umbraco.Core.Services;
@@ -32,7 +33,7 @@ namespace UmbracoWebServices.Services
                         FullName = x.Name,
                         EmailAddress = x.Email,
                         UserId = x.Id,
-                        Lock = x.IsLockedOut
+                        Lock = x.IsApproved
                     }).ToList();
 
             return modelList;
@@ -48,7 +49,7 @@ namespace UmbracoWebServices.Services
                     FullName = x.Name,
                     EmailAddress = x.Email,
                     UserId = x.Id,
-                    Lock = x.IsLockedOut
+                    Lock = x.IsApproved
                 }).ToList();
 
             return modelList;
@@ -88,12 +89,20 @@ namespace UmbracoWebServices.Services
 
         public void DisableUser(UmbracoUserModel model)
         {
-            userService.GetUserById(model.UserId).IsLockedOut = true;
+            var user = userService.GetUserById(model.UserId);
+
+            user.IsApproved = false;
+
+            userService.Save(user);
         }
 
         public void EnableUser(UmbracoUserModel model)
         {
-            userService.GetUserById(model.UserId).IsLockedOut = false;
+            var user = userService.GetUserById(model.UserId);
+
+            user.IsApproved = true;
+
+            userService.Save(user);
         }
 
         public IList<ContentTreeModel> ContentRoot()
