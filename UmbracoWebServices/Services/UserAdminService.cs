@@ -157,23 +157,28 @@ namespace UmbracoWebServices.Services
 
         public void RemoveUserPagePermissions(PermissionsModel model)
         {
-            var content = contentService.GetById(model.PageId);
+            // commented out the code for the new API as this does not work - bugg logged
+            // will use the old API for now.
 
-            var modelList = new List<int> { model.UserId };
+            //var content = contentService.GetById(model.PageId);
 
-            var permissionList = new char[6];
+            //var modelList = new List<int> { model.UserId };
 
-            permissionList[0] = '-';
-            permissionList[1] = '-';
-            permissionList[2] = '-';
-            permissionList[3] = '-';
-            permissionList[4] = '-';
-            permissionList[5] = '-';
+            //var permissionList = new char[6];
 
-            foreach (var permission in permissionList)
-            {
-                contentService.AssignContentPermission(content, permission, modelList);
-            }
+            //permissionList[0] = '-';
+            //permissionList[1] = '-';
+            //permissionList[2] = '-';
+            //permissionList[3] = '-';
+            //permissionList[4] = '-';
+            //permissionList[5] = '-';
+
+            //foreach (var permission in permissionList)
+            //{
+            //    contentService.AssignContentPermission(content, permission, modelList);
+            //}
+
+            umbraco.BusinessLogic.Permission.DeletePermissions(model.UserId, model.PageId);
         }
 
         public IList<PermissionsModel> CheckUserPermissions(int userId)
