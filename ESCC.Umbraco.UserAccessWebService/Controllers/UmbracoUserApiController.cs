@@ -3,10 +3,10 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using Umbraco.Web.WebApi;
-using UmbracoWebServices.Models;
-using UmbracoWebServices.Services.Interfaces;
+using ESCC.Umbraco.UserAccessWebService.Models;
+using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
 
-namespace UmbracoWebServices.Controllers
+namespace ESCC.Umbraco.UserAccessWebService.Controllers
 {
     [Authorize]
     public class UmbracoUserApiController : UmbracoApiController

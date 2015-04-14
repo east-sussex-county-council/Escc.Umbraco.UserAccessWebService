@@ -1,7 +1,7 @@
 ﻿using umbraco.BusinessLogic;
-using UmbracoWebServices.Services.Interfaces;
+using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
 
-namespace UmbracoWebServices.Services
+namespace ESCC.Umbraco.UserAccessWebService.Services
 {
     //public class GetUserTypeService : IGetUserTypeService
     //{

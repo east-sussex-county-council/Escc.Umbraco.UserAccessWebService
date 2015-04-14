@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using UmbracoWebServices.Models;
+using ESCC.Umbraco.UserAccessWebService.Models;
 
-namespace UmbracoWebServices.Services.Interfaces
+namespace ESCC.Umbraco.UserAccessWebService.Services.Interfaces
 {
     public interface IUserAdminService
     {

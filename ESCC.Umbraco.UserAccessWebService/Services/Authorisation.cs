@@ -10,7 +10,7 @@ using System.Web;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
 
-namespace UmbracoWebServices.Services
+namespace ESCC.Umbraco.UserAccessWebService.Services
 {
     public class Authorisation : IHttpModule
     {

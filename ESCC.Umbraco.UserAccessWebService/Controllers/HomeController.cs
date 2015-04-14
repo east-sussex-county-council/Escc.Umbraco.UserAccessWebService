@@ -1,7 +1,7 @@
 ﻿using Umbraco.Web.Mvc;
-using UmbracoWebServices.Services.Interfaces;
+using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
 
-namespace UmbracoWebServices.Controllers
+namespace ESCC.Umbraco.UserAccessWebService.Controllers
 {
     public class HomeController : RenderMvcController
     {

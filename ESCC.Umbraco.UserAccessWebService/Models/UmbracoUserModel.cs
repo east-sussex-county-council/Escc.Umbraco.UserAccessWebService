@@ -1,4 +1,4 @@
-﻿namespace UmbracoWebServices.Models
+﻿namespace ESCC.Umbraco.UserAccessWebService.Models
 {
     public class UmbracoUserModel
     {

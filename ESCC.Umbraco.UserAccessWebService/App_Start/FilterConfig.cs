@@ -1,6 +1,6 @@
 ﻿using System.Web.Mvc;
 
-namespace UmbracoWebServices
+namespace ESCC.Umbraco.UserAccessWebService
 {
     public class FilterConfig
     {

@@ -7,11 +7,11 @@ using Umbraco.Core;
 using Umbraco.Core.Persistence;
 using Umbraco.Core.Services;
 using Umbraco.Web;
-using UmbracoWebServices.Controllers;
-using UmbracoWebServices.Services;
-using UmbracoWebServices.Services.Interfaces;
+using ESCC.Umbraco.UserAccessWebService.Controllers;
+using ESCC.Umbraco.UserAccessWebService.Services;
+using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
 
-namespace UmbracoWebServices
+namespace ESCC.Umbraco.UserAccessWebService
 {
     public class EventHandler : IApplicationEventHandler
     {

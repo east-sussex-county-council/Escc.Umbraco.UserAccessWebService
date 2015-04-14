@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Text;
-using UmbracoWebServices.Services.Interfaces;
+using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
 
-namespace UmbracoWebServices.Services
+namespace ESCC.Umbraco.UserAccessWebService.Services
 {
     public class SHA1HashService : IHashService
     {
