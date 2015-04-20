@@ -15,13 +15,20 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
     {
         private readonly IUserService _userService;
         private readonly IContentService _contentService;
+        private readonly string _webAuthorUserType;
 
         public UserAdminService(IUserService userService, IContentService contentService)
         {
             _userService = userService;
             _contentService = contentService;
+            _webAuthorUserType = ConfigurationManager.AppSettings["WebAuthorUserType"];
         }
 
+        /// <summary>
+        /// Retrieve user info for provided email address
+        /// </summary>
+        /// <param name="emailAddress">Email address to search for</param>
+        /// <returns>User details</returns>
         public IList<UmbracoUserModel> LookupUserByEmail(string emailAddress)
         {
             int totalRecords;
@@ -33,12 +40,18 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                         FullName = x.Name,
                         EmailAddress = x.Email,
                         UserId = x.Id,
-                        Lock = x.IsApproved
+                        Lock = x.IsApproved,
+                        IsWebAuthor = (x.UserType.Alias == _webAuthorUserType)
                     }).ToList();
 
             return modelList;
         }
 
+        /// <summary>
+        /// Retrieve user info for provided user name
+        /// </summary>
+        /// <param name="username">Username to search for</param>
+        /// <returns>User details</returns>
         public IList<UmbracoUserModel> LookupUserByUsername(string username)
         {
             int totalRecords;
@@ -49,12 +62,18 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                     FullName = x.Name,
                     EmailAddress = x.Email,
                     UserId = x.Id,
-                    Lock = x.IsApproved
+                    Lock = x.IsApproved,
+                    IsWebAuthor = (x.UserType.Alias == _webAuthorUserType)
                 }).ToList();
 
             return modelList;
         }
 
+        /// <summary>
+        /// Retrieve user info for provided user ID
+        /// </summary>
+        /// <param name="id">User Id to search for</param>
+        /// <returns>User details</returns>
         public UmbracoUserModel LookupUserById(int id)
         {
             var user = _userService.GetUserById(id);
@@ -63,18 +82,22 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             {
                 UserName = user.Username,
                 FullName = user.Name,
+                EmailAddress = user.Email,
                 UserId = user.Id,
-                EmailAddress = user.Email
+                Lock = user.IsApproved,
+                IsWebAuthor = (user.UserType.Alias == _webAuthorUserType)
             };
 
             return model;
         }
 
+        /// <summary>
+        /// Create a new user using the information provided. Then grant access to the necessary admin sections
+        /// </summary>
+        /// <param name="model">New user information</param>
         public void CreateUmbracoUser(UmbracoUserModel model)
         {
-            var webAuthorUserType = ConfigurationManager.AppSettings["WebAuthorUserType"];
-
-            var user = _userService.CreateWithIdentity(model.UserName, model.EmailAddress, Guid.NewGuid().ToString(), webAuthorUserType);
+            var user = _userService.CreateWithIdentity(model.UserName, model.EmailAddress, Guid.NewGuid().ToString(), _webAuthorUserType);
 
             user.Name = model.FullName;
 
@@ -85,6 +108,10 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             _userService.Save(user);
         }
 
+        /// <summary>
+        /// Change the password for a selected user.
+        /// </summary>
+        /// <param name="model">User and password information</param>
         public void ResetUsersPassword(PasswordResetModel model)
         {
             var user = _userService.GetUserById(model.UserId);
@@ -92,6 +119,10 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             _userService.SavePassword(user, model.NewPassword);
         }
 
+        /// <summary>
+        /// Disable users account in Umbraco, stopping them from logging into the backend
+        /// </summary>
+        /// <param name="model">User data</param>
         public void DisableUser(UmbracoUserModel model)
         {
             var user = _userService.GetUserById(model.UserId);
@@ -101,6 +132,10 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             _userService.Save(user);
         }
 
+        /// <summary>
+        /// Enable users account in Umbraco, allowing them to log into the backend
+        /// </summary>
+        /// <param name="model">User data</param>
         public void EnableUser(UmbracoUserModel model)
         {
             var user = _userService.GetUserById(model.UserId);
@@ -110,6 +145,10 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             _userService.Save(user);
         }
 
+        /// <summary>
+        /// Get data from the root / home content node
+        /// </summary>
+        /// <returns>Root node data</returns>
         public IList<ContentTreeModel> ContentRoot()
         {
             var rootContent = _contentService.GetRootContent();
@@ -124,6 +163,11 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             }).ToList();
         }
 
+        /// <summary>
+        /// Get data from the root / home content node
+        /// </summary>
+        /// <param name="uid"></param>
+        /// <returns></returns>
         public IList<ContentTreeModel> ContentRoot(int uid)
         {
             IList<ContentTreeModel> rtn = new List<ContentTreeModel>();
@@ -156,21 +200,10 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                 rtn.Add(item);
             }
             return rtn;
-
-            //return rootContent.Select(root => new ContentTreeModel
-            //{
-            //    PageId = root.Id,
-            //    PageName = root.Name,
-            //    RootId = root.Id,
-            //    Published = root.Published,
-            //    PublishedDate = root.UpdateDate,
-            //    UserPermissions = _contentService.GetPermissionsForEntity(root).Select(s => s.AssignedPermissions)
-            //}).ToList();
         }
 
         public IList<ContentTreeModel> ContentChild(int root)
         {
-
             var childrenOfRoot = _contentService.GetChildren(root);
 
             return childrenOfRoot.Select(child => new ContentTreeModel
@@ -217,17 +250,6 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                 rtn.Add(item);
             }
             return rtn;
-
-            //return childrenOfRoot.Select(child => new ContentTreeModel
-            //{
-            //    PageId = child.Id,
-            //    ParentId = child.ParentId,
-            //    RootId = root,
-            //    PageName = child.Name,
-            //    Published = child.Published,
-            //    PublishedDate = child.UpdateDate,
-            //    UserPermissions = _contentService.GetPermissionsForEntity(child).Where(t => t.UserId == uid)
-            //}).ToList();
         }
 
         private List<string[]> GetDefaultUserPermissions(int userId)
@@ -313,9 +335,6 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         /// <returns>User page permission set</returns>
         public IList<PermissionsModel> CheckUserPermissions(int userId)
         {
-            //var ut = _userService.GetUserTypeByAlias("NewUser");
-            //var per = ut.Permissions;
-
             var user = _userService.GetUserById(userId);
 
             IList<PermissionsModel> permList = new List<PermissionsModel>();
@@ -387,12 +406,10 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         /// <returns>Content Items</returns>
         public IList<PermissionsModel> GetPagesWithoutAuthor()
         {
-            var webAuthorUserType = ConfigurationManager.AppSettings["WebAuthorUserType"];
-
             int totalRecords;
 
             // Get the Web Author User Type
-            var userType = _userService.GetUserTypeByAlias(webAuthorUserType);
+            var userType = _userService.GetUserTypeByAlias(_webAuthorUserType);
             // Get all users whose type is Web Author
             var users = _userService.GetAll(0,100,out totalRecords).Where(t => t.UserType.Id == userType.Id);
 

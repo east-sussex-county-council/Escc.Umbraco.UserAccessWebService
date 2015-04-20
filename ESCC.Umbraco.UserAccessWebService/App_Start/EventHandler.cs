@@ -24,7 +24,7 @@ namespace ESCC.Umbraco.UserAccessWebService
             var builder = new ContainerBuilder();
 
             //register all controllers found in this assembly
-            builder.RegisterControllers(typeof(HomeController).Assembly);
+            //builder.RegisterControllers(typeof(HomeController).Assembly);
 
             // web api controllers
             builder.RegisterApiControllers(typeof(UmbracoApplication).Assembly);
