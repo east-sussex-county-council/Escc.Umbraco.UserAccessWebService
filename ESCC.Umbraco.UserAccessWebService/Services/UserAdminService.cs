@@ -151,7 +151,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         /// <returns>Root node data</returns>
         public IList<ContentTreeModel> ContentRoot()
         {
-            var rootContent = _contentService.GetRootContent();
+            var rootContent = _contentService.GetRootContent().OrderBy(o => o.SortOrder);
 
             return rootContent.Select(root => new ContentTreeModel
             {
@@ -174,7 +174,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
          
             var userDefaultPerms = GetDefaultUserPermissions(uid);
 
-            var rootContent = _contentService.GetRootContent();
+            var rootContent = _contentService.GetRootContent().OrderBy(o => o.SortOrder);
 
             foreach (var root in rootContent)
             {
@@ -204,7 +204,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
 
         public IList<ContentTreeModel> ContentChild(int root)
         {
-            var childrenOfRoot = _contentService.GetChildren(root);
+            var childrenOfRoot = _contentService.GetChildren(root).OrderBy(o => o.SortOrder);
 
             return childrenOfRoot.Select(child => new ContentTreeModel
             {
@@ -222,7 +222,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         {
             var userDefaultPerms = GetDefaultUserPermissions(uid);
 
-            var childrenOfRoot = _contentService.GetChildren(root);
+            var childrenOfRoot = _contentService.GetChildren(root).OrderBy(o => o.SortOrder);
 
             IList<ContentTreeModel> rtn = new List<ContentTreeModel>();
 
