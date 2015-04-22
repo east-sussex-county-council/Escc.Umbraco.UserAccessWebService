@@ -435,20 +435,33 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
 
             // Get ALL site content
             var permList = new List<PermissionsModel>();
-            var rootContent = _contentService.GetRootContent().FirstOrDefault();
-            if (rootContent == null) return null;
-            var allContent = rootContent.Descendants().Where(a => !webAuthorPages.Contains(a.Id));
+            var rootContent = _contentService.GetRootContent().OrderBy(o => o.SortOrder);
 
-            foreach (var contentItem in allContent)
+            foreach (var rootNode in rootContent)
             {
-                var p = new PermissionsModel
+                var rn = new PermissionsModel
                 {
-                    PageId = contentItem.Id,
-                    PageName = contentItem.Name,
-                    PagePath = PageBreadcrumb(contentItem.Id)
+                    PageId = rootNode.Id,
+                    PageName = rootNode.Name,
+                    PagePath = PageBreadcrumb(rootNode.Id)
                 };
 
-                permList.Add(p);
+                permList.Add(rn);
+
+                var allContent = rootNode.Descendants().Where(a => !webAuthorPages.Contains(a.Id)).OrderBy(o => o.SortOrder);
+
+                foreach (var contentItem in allContent)
+                {
+                    var p = new PermissionsModel
+                    {
+                        PageId = contentItem.Id,
+                        PageName = contentItem.Name,
+                        PagePath = PageBreadcrumb(contentItem.Id)
+                    };
+
+                    permList.Add(p);
+                }
+                
             }
 
             return permList;
@@ -470,9 +483,9 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             // last one is the current node.
             var path = contentNode.Path.Split(',');
 
-            if (path.Count() > 3)
+            if (path.Count() > 2)
             {
-                for (var i = 2; i < path.Count() - 1; i++)
+                for (var i = 1; i < path.Count() - 1; i++)
                 {
                     var pathId = Convert.ToInt32(path[i]);
                     var pathNode = _contentService.GetById(pathId).Name;

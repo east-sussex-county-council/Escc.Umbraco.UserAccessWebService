@@ -1,7 +1,6 @@
 ﻿using Moq;
 using NUnit.Framework;
 using umbraco.BusinessLogic;
-using UmbracoWebServices.Services;
 using UmbracoWebServices.Services.Interfaces;
 
 namespace UmbracoWebServiceTest
