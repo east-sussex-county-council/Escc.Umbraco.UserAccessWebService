@@ -17,10 +17,11 @@
     <Compile Include="ESCC.Umbraco.UserAccessWebService.nuspec" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="ESCC.Umbraco.UserAccessWebService, Version=1.0.5662.21119, Culture=neutral, PublicKeyToken=null">
+    <ProjectReference Include="..\ESCC.Umbraco.UserAccessWebService\ESCC.Umbraco.UserAccessWebService.csproj">
       <Name>ESCC.Umbraco.UserAccessWebService</Name>
-      <AssemblyName>ESCC.Umbraco.UserAccessWebService.dll</AssemblyName>
-    </Reference>
+      <Project>{83f4c481-878f-463b-9300-7ba888fc3e97}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\NuBuild\v1\NuBuild.targets" />
 </Project>
