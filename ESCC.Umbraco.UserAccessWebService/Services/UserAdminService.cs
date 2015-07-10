@@ -350,6 +350,9 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                 // If only the default permission then there will only be one element which will contain "F" (Browse Node)
                 if (userPerm.AssignedPermissions.Count() > 1 || (userPerm.AssignedPermissions[0] != "-" && userPerm.AssignedPermissions[0] != "F"))
                 {
+                    var contentNode = _contentService.GetById(userPerm.EntityId);
+                    if (contentNode.Trashed) continue;
+
                     var pUser = _userService.GetUserById(userPerm.UserId);
 
                     var p = new PermissionsModel
@@ -359,7 +362,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                         EmailAddress = pUser.Email,
                         PageId = userPerm.EntityId,
                         PageName = _contentService.GetById(userPerm.EntityId).Name,
-                        PagePath = PageBreadcrumb(userPerm.EntityId)
+                        PagePath = PageBreadcrumb(contentNode)
                     };
 
                     permList.Add(p);
@@ -439,11 +442,13 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
 
             foreach (var rootNode in rootContent)
             {
+                if (rootNode.Trashed) continue;
+
                 var rn = new PermissionsModel
                 {
                     PageId = rootNode.Id,
                     PageName = rootNode.Name,
-                    PagePath = PageBreadcrumb(rootNode.Id)
+                    PagePath = PageBreadcrumb(rootNode)
                 };
 
                 permList.Add(rn);
@@ -452,11 +457,13 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
 
                 foreach (var contentItem in allContent)
                 {
+                    if (contentItem.Trashed) continue;
+
                     var p = new PermissionsModel
                     {
                         PageId = contentItem.Id,
                         PageName = contentItem.Name,
-                        PagePath = PageBreadcrumb(contentItem.Id)
+                        PagePath = PageBreadcrumb(contentItem)
                     };
 
                     permList.Add(p);
@@ -465,18 +472,19 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             }
 
             return permList;
-        } 
+        }
 
         /// <summary>
         /// Generate a breadcrumb page list to the supplied page
         /// </summary>
-        /// <param name="nodeId">destination page</param>
+        /// <param name="contentNode"></param>
         /// <returns>Breadcrumb to supplied page</returns>
-        private string PageBreadcrumb(int nodeId)
+        private string PageBreadcrumb(IContent contentNode)
         {
             var rtn = String.Empty;
+            if (contentNode == null) return rtn;
 
-            var contentNode = _contentService.GetById(nodeId);
+            //IContent contentNode = _contentService.GetById(nodeId);
 
             // First item will be -1 (Content),
             // Second item will be the home page
