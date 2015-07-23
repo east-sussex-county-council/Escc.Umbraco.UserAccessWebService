@@ -35,6 +35,7 @@ namespace ESCC.Umbraco.UserAccessWebService
             builder.RegisterType<RepositoryFactory>();
             builder.RegisterType<UserService>().As<IUserService>();
             builder.RegisterType<ContentService>().As<IContentService>();
+            builder.RegisterType<ExpiringPagesService>().As<IExpiringPagesService>();
 
             var container = builder.Build();
             DependencyResolver.SetResolver(new AutofacDependencyResolver(container));

@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Web.Http;
 using Umbraco.Web.WebApi;
 using ESCC.Umbraco.UserAccessWebService.Models;
+using ESCC.Umbraco.UserAccessWebService.Services;
 using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
 
 namespace ESCC.Umbraco.UserAccessWebService.Controllers
@@ -12,10 +13,12 @@ namespace ESCC.Umbraco.UserAccessWebService.Controllers
     public class UmbracoUserApiController : UmbracoApiController
     {
         private readonly IUserAdminService _userAdminService;
+        private readonly IExpiringPagesService _expiringPagesService;
 
-        public UmbracoUserApiController(IUserAdminService userAdminService)
+        public UmbracoUserApiController(IUserAdminService userAdminService, IExpiringPagesService expiringPagesService)
         {
             _userAdminService = userAdminService;
+            _expiringPagesService = expiringPagesService;
         }
 
         //[Authorisation.RequireHttpsAttribute]
@@ -290,7 +293,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Controllers
             }
         }
 
-        //[Authorisation.RequireHttpsAttribute]
+        [Authorisation.RequireHttpsAttribute]
         [HttpPost]
         public HttpResponseMessage PostCloneUserPermissions(PermissionsModel model)
         {
@@ -299,6 +302,23 @@ namespace ESCC.Umbraco.UserAccessWebService.Controllers
                 _userAdminService.ClonePermissions(model);
 
                 return Request.CreateResponse(HttpStatusCode.OK);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+            }
+        }
+
+
+        [HttpPost]
+        [HttpGet]
+        public HttpResponseMessage CheckForExpiringNodes(int noOfDaysFrom)
+        {
+            try
+            {
+                var nodes = _expiringPagesService.GetExpiringNodes(noOfDaysFrom);
+
+                return Request.CreateResponse(HttpStatusCode.OK, nodes);
             }
             catch (Exception ex)
             {
