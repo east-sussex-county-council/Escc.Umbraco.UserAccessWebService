@@ -2,34 +2,34 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Web.Http;
 using ESCC.Umbraco.UserAccessWebService.Models;
+using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
 using Umbraco.Core.Models;
 using Umbraco.Core.Services;
-using Umbraco.Web.WebApi;
 
 namespace ESCC.Umbraco.UserAccessWebService.Services
 {
-    public class ExpiringPagesController : UmbracoApiController
+    public class ExpiringPagesService : IExpiringPagesService
     {
-        private ContentService _contentService;
-        private IUserService _userService;
+        private readonly IContentService _contentService;
+        private readonly IUserService _userService;
 
         private string _webAuthorUserType;
 
-        [HttpGet]
-        public HttpResponseMessage CheckForExpiringNodes(int noOfDaysFrom)
+        public ExpiringPagesService(IUserService userService, IContentService contentService)
+        {
+            _userService = userService;
+            _contentService = contentService;
+        }
+
+        public IList<ExpiringPageModel> GetExpiringNodes(int noOfDaysFrom)
         {
             GetConfigSettings();
 
             // Get pages that expire within the declared period, order by ?
-            _contentService = new ContentService();
-            _userService = Services.UserService;
-
             var home = _contentService.GetRootContent().First();
 
+            //TODO: add FROM Today. Also check that unpublished pages are not selected.
             var expiringNodes = home.Descendants().Where(nn => nn.ExpireDate < DateTime.Now.AddDays(noOfDaysFrom)).OrderBy(nn => nn.ExpireDate);
 
             // For each page:
@@ -42,7 +42,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             }
 
             // Return a list of users to email, along with the page details
-            return Request.CreateResponse(HttpStatusCode.OK, expiringPages);
+            return expiringPages;
         }
 
         private void GetConfigSettings()
@@ -50,7 +50,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             _webAuthorUserType = ConfigurationManager.AppSettings["WebAuthorUserType"];
         }
 
-        public ExpiringPageModel GetPageEditors(IContent expiringPage)
+        private ExpiringPageModel GetPageEditors(IContent expiringPage)
         {
             var perms = _contentService.GetPermissionsForEntity(expiringPage);
 
