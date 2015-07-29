@@ -29,8 +29,8 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             // Get pages that expire within the declared period, order by ?
             var home = _contentService.GetRootContent().First();
 
-            //TODO: add FROM Today. Also check that unpublished pages are not selected.
-            var expiringNodes = home.Descendants().Where(nn => nn.ExpireDate < DateTime.Now.AddDays(noOfDaysFrom)).OrderBy(nn => nn.ExpireDate);
+            //TODO: Do we need to check that unpublished pages are not selected?
+            var expiringNodes = home.Descendants().Where(nn => nn.ExpireDate > DateTime.Now && nn.ExpireDate < DateTime.Now.AddDays(noOfDaysFrom)).OrderBy(nn => nn.ExpireDate);
 
             // For each page:
             IList<ExpiringPageModel> expiringPages = new List<ExpiringPageModel>();
