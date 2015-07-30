@@ -38,7 +38,11 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             foreach (var expiringNode in expiringNodes)
             {
                 //   Get Web Authors with permission
-                expiringPages.Add(GetPageEditors(expiringNode));
+                var n = GetPageEditors(expiringNode);
+                if (n != null)
+                {
+                    expiringPages.Add(n);
+                }
             }
 
             // Return a list of users to email, along with the page details
@@ -52,6 +56,8 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
 
         private ExpiringPageModel GetPageEditors(IContent expiringPage)
         {
+            if (expiringPage.ExpireDate == null) return null;
+
             var perms = _contentService.GetPermissionsForEntity(expiringPage);
 
             IList<UmbracoUserModel> pageUsers = new List<UmbracoUserModel>();
@@ -76,7 +82,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                 PageId = expiringPage.Id,
                 PageName = expiringPage.Name,
                 PagePath = expiringPage.Path,
-                ExpiryDate = expiringPage.ExpireDate,
+                ExpiryDate = (DateTime) expiringPage.ExpireDate,
                 PageUsers = pageUsers
             };
             return pagePerms;
