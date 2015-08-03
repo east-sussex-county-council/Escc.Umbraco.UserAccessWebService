@@ -5,6 +5,11 @@ namespace ESCC.Umbraco.UserAccessWebService.Models
 {
     public class ExpiringPageModel
     {
+        public ExpiringPageModel()
+        {
+            PageUsers = new List<UmbracoUserModel>();
+        }
+
         public int PageId { get; set; }
 
         public string PageName { get; set; }

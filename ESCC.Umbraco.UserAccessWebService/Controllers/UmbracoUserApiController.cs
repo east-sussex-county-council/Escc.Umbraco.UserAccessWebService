@@ -309,7 +309,6 @@ namespace ESCC.Umbraco.UserAccessWebService.Controllers
             }
         }
 
-
         [HttpPost]
         [HttpGet]
         public HttpResponseMessage CheckForExpiringNodes(int noOfDaysFrom)
@@ -317,6 +316,22 @@ namespace ESCC.Umbraco.UserAccessWebService.Controllers
             try
             {
                 var nodes = _expiringPagesService.GetExpiringNodes(noOfDaysFrom);
+
+                return Request.CreateResponse(HttpStatusCode.OK, nodes);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+            }
+        }
+
+        [HttpPost]
+        [HttpGet]
+        public HttpResponseMessage CheckForExpiringNodesByUser(int noOfDaysFrom)
+        {
+            try
+            {
+                var nodes = _expiringPagesService.GetExpiringNodesByUser(noOfDaysFrom);
 
                 return Request.CreateResponse(HttpStatusCode.OK, nodes);
             }

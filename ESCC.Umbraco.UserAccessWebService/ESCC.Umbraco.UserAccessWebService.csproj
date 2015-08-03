@@ -268,6 +268,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\EventHandler.cs" />
+    <Compile Include="Models\UserPageModel.cs" />
+    <Compile Include="Models\UserPagesModel.cs" />
     <Compile Include="Services\ExpiringPagesService.cs" />
     <Compile Include="Controllers\UmbracoUserApiController.cs" />
     <Compile Include="Models\ContentTreeModel.cs" />
