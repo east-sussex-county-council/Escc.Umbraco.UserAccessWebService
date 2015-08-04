@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using ESCC.Umbraco.UserAccessWebService.Models;
 using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
@@ -17,48 +16,10 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         private readonly IContentService _contentService;
         private readonly IUserService _userService;
 
-        private string _webAuthorUserType;
-
         public ExpiringPagesService(IUserService userService, IContentService contentService)
         {
             _userService = userService;
             _contentService = contentService;
-        }
-
-        /// <summary>
-        /// Get a list of expiring pages and a list of Web Authors for each page
-        /// </summary>
-        /// <param name="noOfDaysFrom">
-        /// How many days to look forward
-        /// </param>
-        /// <returns>
-        /// List of expiring pages
-        /// </returns>
-        public IList<ExpiringPageModel> GetExpiringNodes(int noOfDaysFrom)
-        {
-            GetConfigSettings();
-
-            // Get pages that expire within the declared period, order by ?
-            var home = _contentService.GetRootContent().First();
-
-            //TODO: Do we need to check that unpublished pages are not selected?
-            var expiringNodes = home.Descendants().Where(nn => nn.ExpireDate > DateTime.Now && nn.ExpireDate < DateTime.Now.AddDays(noOfDaysFrom)).OrderBy(nn => nn.ExpireDate);
-
-            // For each page:
-            IList<ExpiringPageModel> expiringPages = new List<ExpiringPageModel>();
-
-            foreach (var expiringNode in expiringNodes)
-            {
-                //   Get Web Authors with permission
-                var n = GetPageEditors(expiringNode);
-                if (n != null)
-                {
-                    expiringPages.Add(n);
-                }
-            }
-
-            // Return a list of users to email, along with the page details
-            return expiringPages;
         }
 
         /// <summary>
@@ -83,7 +44,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             // For each page:
             IList<UserPagesModel> userPages = new List<UserPagesModel>();
 
-            // Create a WebStaff record
+            // Create a WebStaff record. Use -1 as an Id as there won't be a valid Umbraco user with that value.
             var webStaff = new UserPagesModel();
             var webstaffUser = new UmbracoUserModel
             {
@@ -99,11 +60,15 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
 
             foreach (IContent expiringNode in expiringNodes)
             {
+                if (expiringNode.ExpireDate == null) continue;
+
                 //   Get Web Authors with permission
                 var perms = _contentService.GetPermissionsForEntity(expiringNode);
 
-                var nodePermissions = perms as IList<EntityPermission> ?? perms.ToList();
-                if (!nodePermissions.Any())
+                var nodeAuthors = perms as IList<EntityPermission> ?? perms.ToList();
+
+                // if no Web Authors, add this page to the WebStaff list
+                if (!nodeAuthors.Any())
                 {
                     var userPage = new UserPageModel
                     {
@@ -119,7 +84,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                 }
 
                 // Add the current page to each user
-                foreach (var perm in nodePermissions)
+                foreach (var author in nodeAuthors)
                 {
                     var userPage = new UserPageModel
                     {
@@ -130,13 +95,13 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                         ExpiryDate = (DateTime)expiringNode.ExpireDate
                     };
 
-                    var user = userPages.FirstOrDefault(f => f.User.UserId == perm.UserId);
+                    var user = userPages.FirstOrDefault(f => f.User.UserId == author.UserId);
                     if (user == null)
                     {
-                        var pUser = _userService.GetUserById(perm.UserId);
+                        var pUser = _userService.GetUserById(author.UserId);
                         var p = new UmbracoUserModel
                         {
-                            UserId = perm.UserId,
+                            UserId = author.UserId,
                             UserName = pUser.Username,
                             FullName = pUser.Name,
                             EmailAddress = pUser.Email
@@ -146,10 +111,9 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                         userPages.Add(user);
                     }
 
+
                     userPages.Where(p => p.User.UserId == user.User.UserId).ForEach(u => u.Pages.Add(userPage));
                 }
-
-
             }
 
             // Return a list of users to email, along with the page details
@@ -158,41 +122,6 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
 
         private void GetConfigSettings()
         {
-            _webAuthorUserType = ConfigurationManager.AppSettings["WebAuthorUserType"];
-        }
-
-        private ExpiringPageModel GetPageEditors(IContent expiringPage)
-        {
-            if (expiringPage.ExpireDate == null) return null;
-
-            var perms = _contentService.GetPermissionsForEntity(expiringPage);
-
-            IList<UmbracoUserModel> pageUsers = new List<UmbracoUserModel>();
-
-            // Get all users with specific permissions on this page
-            foreach (var perm in perms)
-            {
-                var pUser = _userService.GetUserById(perm.UserId);
-                var p = new UmbracoUserModel
-                {
-                    UserId = perm.UserId,
-                    UserName = pUser.Username,
-                    FullName = pUser.Name,
-                    EmailAddress = pUser.Email,
-                };
-
-                pageUsers.Add(p);
-            }
-
-            var pagePerms = new ExpiringPageModel
-            {
-                PageId = expiringPage.Id,
-                PageName = expiringPage.Name,
-                PagePath = expiringPage.Path,
-                ExpiryDate = (DateTime) expiringPage.ExpireDate,
-                PageUsers = pageUsers
-            };
-            return pagePerms;
         }
     }
 }
