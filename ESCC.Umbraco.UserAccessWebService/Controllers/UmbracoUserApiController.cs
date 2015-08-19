@@ -107,9 +107,9 @@ namespace ESCC.Umbraco.UserAccessWebService.Controllers
         {
             try
             {
-                _userAdminService.CreateUmbracoUser(model);
+                var user = _userAdminService.CreateUmbracoUser(model);
 
-                return Request.CreateResponse(HttpStatusCode.OK);
+                return Request.CreateResponse(HttpStatusCode.OK, user);
             }
             catch (Exception ex)
             {

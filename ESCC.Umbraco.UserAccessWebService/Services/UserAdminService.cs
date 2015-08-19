@@ -95,17 +95,25 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         /// Create a new user using the information provided. Then grant access to the necessary admin sections
         /// </summary>
         /// <param name="model">New user information</param>
-        public void CreateUmbracoUser(UmbracoUserModel model)
+        /// <returns>Updated User Model containing new User Id</returns>
+        public UmbracoUserModel CreateUmbracoUser(UmbracoUserModel model)
         {
             var user = _userService.CreateWithIdentity(model.UserName, model.EmailAddress, Guid.NewGuid().ToString(), _webAuthorUserType);
 
             user.Name = model.FullName;
+
+            // Set Content Start Node to the Home page.
+            var home = _contentService.GetRootContent().First();
+            user.StartContentId = home.Id;
 
             // Give user access to Content and Media sections
             user.AddAllowedSection("content");
             user.AddAllowedSection("media");
 
             _userService.Save(user);
+
+            model.UserId = user.Id;
+            return model;
         }
 
         /// <summary>

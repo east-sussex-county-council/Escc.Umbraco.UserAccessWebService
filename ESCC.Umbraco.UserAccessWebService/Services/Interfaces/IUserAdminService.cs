@@ -5,7 +5,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services.Interfaces
 {
     public interface IUserAdminService
     {
-        void CreateUmbracoUser(UmbracoUserModel model);
+        UmbracoUserModel CreateUmbracoUser(UmbracoUserModel model);
 
         IList<UmbracoUserModel> LookupUserByEmail(string emailaddress);
 
