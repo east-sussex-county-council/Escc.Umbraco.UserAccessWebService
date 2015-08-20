@@ -6,6 +6,7 @@ using Umbraco.Web.WebApi;
 using ESCC.Umbraco.UserAccessWebService.Models;
 using ESCC.Umbraco.UserAccessWebService.Services;
 using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
+using umbraco;
 
 namespace ESCC.Umbraco.UserAccessWebService.Controllers
 {
@@ -267,7 +268,13 @@ namespace ESCC.Umbraco.UserAccessWebService.Controllers
         {
             try
             {
-                var permissionsList = _userAdminService.CheckPagePermissions(url);
+                var page = _userAdminService.GetContentNode(url);
+                if (page == null)
+                {
+                    return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Page Not Found");
+                }
+
+                var permissionsList = _userAdminService.CheckPagePermissions(page);
 
                 return Request.CreateResponse(HttpStatusCode.OK, permissionsList);
             }
@@ -322,6 +329,21 @@ namespace ESCC.Umbraco.UserAccessWebService.Controllers
             catch (Exception ex)
             {
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+            }
+        }
+
+        [HttpGet]
+        public HttpResponseMessage GetWebEditors()
+        {
+            try
+            {
+                var users = _userAdminService.LookupWebEditors();
+
+                return Request.CreateResponse(HttpStatusCode.OK, users);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadGateway, ex);
             }
         }
     }

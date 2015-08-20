@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ESCC.Umbraco.UserAccessWebService.Models;
+using Umbraco.Core.Models;
 
 namespace ESCC.Umbraco.UserAccessWebService.Services.Interfaces
 {
@@ -33,12 +34,16 @@ namespace ESCC.Umbraco.UserAccessWebService.Services.Interfaces
 
         IList<PermissionsModel> CheckUserPermissions(int userId);
 
-        IList<PermissionsModel> CheckPagePermissions(string url);
+        IList<PermissionsModel> CheckPagePermissions(IContent page);
 
         IList<PermissionsModel> GetPagesWithoutAuthor();
 
         void ClonePermissions(PermissionsModel model);
 
         ContentTreeModel GetPage(int pageId);
+
+        IContent GetContentNode(string url);
+
+        IList<UmbracoUserModel> LookupWebEditors();
     }
 }

@@ -383,32 +383,84 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         /// <summary>
         /// Get assigned permissions for a specific page
         /// </summary>
-        /// <param name="url">URL of page to check</param>
+        /// <param name="page">page to check</param>
         /// <returns>Permissions set</returns>
-        public IList<PermissionsModel> CheckPagePermissions(string url)
+        public IList<PermissionsModel> CheckPagePermissions(IContent page)
         {
-            var pageId = uQuery.GetNodeIdByUrl(url);
-            var page = _contentService.GetById(pageId);
-            var perms = _contentService.GetPermissionsForEntity(page);
-
             IList<PermissionsModel> permList = new List<PermissionsModel>();
+
+            var perms = _contentService.GetPermissionsForEntity(page);
 
             foreach (var perm in perms)
             {
+                // Assume: 
+                // if no permissions at all, then there will be only one element which will contain a "-"
+                // If only the default permission then there will only be one element which will contain "F" (Browse Node)
+                if (perm.AssignedPermissions.Count() <= 1 &&
+                    (perm.AssignedPermissions[0] == "-" || perm.AssignedPermissions[0] == "F")) continue;
+
                 var pUser = _userService.GetUserById(perm.UserId);
+
+                // Only interested in Web Authors
+                if (pUser.UserType.Alias != _webAuthorUserType) continue;
+
                 var p = new PermissionsModel
                 {
                     UserId = perm.UserId,
                     FullName = pUser.Name,
                     EmailAddress = pUser.Email,
-                    PageId = pageId,
+                    PageId = page.Id,
                     PageName = page.Name
                 };
 
                 permList.Add(p);
-                
             }
             return permList;
+        }
+
+        /// <summary>
+        /// Get Umbraco node by url
+        /// </summary>
+        /// <param name="url">URL of page to get</param>
+        /// <returns>Found page</returns>
+        public IContent GetContentNode(string url)
+        {
+            var pageId = uQuery.GetNodeIdByUrl(url);
+
+            return _contentService.GetById(pageId);
+        }
+
+        /// <summary>
+        /// Get list of Web Editors
+        /// </summary>
+        /// <returns>List of Web Editors</returns>
+        public IList<UmbracoUserModel> LookupWebEditors()
+        {
+            var webEditorsList = new List<UmbracoUserModel>();
+
+            int totalRecords;
+
+            // Get the Web Author User Type
+            var userType = _userService.GetUserTypeByAlias("editor");
+            // Get all users whose type is Web Author
+            var users = _userService.GetAll(0, int.MaxValue, out totalRecords).Where(t => t.UserType.Id == userType.Id);
+
+            foreach (var webEditor in users)
+            {
+                var ed = new UmbracoUserModel
+                {
+                    UserId = webEditor.Id,
+                    UserName = webEditor.Username,
+                    FullName = webEditor.Name,
+                    EmailAddress = webEditor.Email,
+                    IsWebAuthor = false,
+                    Lock = false
+                };
+          
+                webEditorsList.Add(ed);
+            }
+
+            return webEditorsList;
         }
 
         /// <summary>
@@ -422,7 +474,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             // Get the Web Author User Type
             var userType = _userService.GetUserTypeByAlias(_webAuthorUserType);
             // Get all users whose type is Web Author
-            var users = _userService.GetAll(0,100,out totalRecords).Where(t => t.UserType.Id == userType.Id);
+            var users = _userService.GetAll(0, int.MaxValue, out totalRecords).Where(t => t.UserType.Id == userType.Id);
 
             // Get unique list of pages that have a Web Author
             IList<int> webAuthorPages = new List<int>();
