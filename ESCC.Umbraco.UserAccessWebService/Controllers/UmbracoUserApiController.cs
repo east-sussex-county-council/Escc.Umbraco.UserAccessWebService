@@ -2,11 +2,10 @@
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
-using Umbraco.Web.WebApi;
 using ESCC.Umbraco.UserAccessWebService.Models;
 using ESCC.Umbraco.UserAccessWebService.Services;
 using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
-using umbraco;
+using Umbraco.Web.WebApi;
 
 namespace ESCC.Umbraco.UserAccessWebService.Controllers
 {

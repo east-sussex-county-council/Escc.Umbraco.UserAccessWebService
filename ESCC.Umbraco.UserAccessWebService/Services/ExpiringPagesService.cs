@@ -33,12 +33,10 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         /// </returns>
         public IList<UserPagesModel> GetExpiringNodesByUser(int noOfDaysFrom)
         {
-            GetConfigSettings();
-
-            // Get pages that expire within the declared period, order by ?
+            // Get website home page
             var home = _contentService.GetRootContent().First();
 
-            //TODO: Do we need to check that unpublished pages are not selected?
+            // Get pages that expire within the declared period, order by expiry date
             var expiringNodes = home.Descendants().Where(nn => nn.ExpireDate > DateTime.Now && nn.ExpireDate < DateTime.Now.AddDays(noOfDaysFrom)).OrderBy(nn => nn.ExpireDate);
 
             // For each page:
@@ -58,8 +56,9 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
 
             var helper = new UmbracoHelper();
 
-            foreach (IContent expiringNode in expiringNodes)
+            foreach (var expiringNode in expiringNodes)
             {
+                // this should not happen, but just in case...
                 if (expiringNode.ExpireDate == null) continue;
 
                 //   Get Web Authors with permission
@@ -83,7 +82,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                     continue;
                 }
 
-                // Add the current page to each user
+                // Add the current page to each user that has edit rights
                 foreach (var author in nodeAuthors)
                 {
                     var userPage = new UserPageModel
@@ -96,6 +95,8 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                     };
 
                     var user = userPages.FirstOrDefault(f => f.User.UserId == author.UserId);
+
+                    // Create a User record if one does not yet exist
                     if (user == null)
                     {
                         var pUser = _userService.GetUserById(author.UserId);
@@ -111,17 +112,13 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                         userPages.Add(user);
                     }
 
-
+                    // Assign the current page (outer loop) to this author
                     userPages.Where(p => p.User.UserId == user.User.UserId).ForEach(u => u.Pages.Add(userPage));
                 }
             }
 
             // Return a list of users to email, along with the page details
             return userPages;
-        }
-
-        private void GetConfigSettings()
-        {
         }
     }
 }
