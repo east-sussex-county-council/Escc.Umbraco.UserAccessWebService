@@ -18,6 +18,8 @@
 
         public string EmailAddress { get; set; }
 
+        public bool UserLocked { get; set; }
+
         public string PagePath { get; set; }
     }
 }

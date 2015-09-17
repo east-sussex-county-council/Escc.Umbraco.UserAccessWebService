@@ -8,7 +8,6 @@ using Umbraco.Core.Models;
 using Umbraco.Core.Models.Membership;
 using Umbraco.Core.Services;
 using Umbraco.Web;
-using Umbraco.Core.Logging;
 
 namespace ESCC.Umbraco.UserAccessWebService.Services
 {
@@ -36,8 +35,6 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         {
             // Get website home page. Sort the nodes to ensure we get the actual home page which is (must be0 the first node.
             var home = _contentService.GetRootContent().OrderBy(o => o.SortOrder).First();
-            
-            //LogHelper.Info(this.GetType(), string.Format("home node: {0}", home.Id));
 
             // Get pages that expire within the declared period, order by expiry date
             var expiringNodes = home.Descendants().Where(nn => nn.ExpireDate > DateTime.Now && nn.ExpireDate < DateTime.Now.AddDays(noOfDaysFrom)).OrderBy(nn => nn.ExpireDate);
@@ -64,7 +61,9 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                 // this should not happen, but just in case...
                 if (expiringNode.ExpireDate == null) continue;
 
-                //   Get Web Authors with permission
+                UserPageModel userPage;
+
+                // Get Web Authors with permission
                 var perms = _contentService.GetPermissionsForEntity(expiringNode);
 
                 var nodeAuthors = perms as IList<EntityPermission> ?? perms.ToList();
@@ -72,7 +71,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                 // if no Web Authors, add this page to the WebStaff list
                 if (!nodeAuthors.Any())
                 {
-                    var userPage = new UserPageModel
+                    userPage = new UserPageModel
                     {
                         PageId = expiringNode.Id,
                         PageName = expiringNode.Name,
@@ -85,24 +84,29 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                     continue;
                 }
 
+                userPage = new UserPageModel
+                {
+                    PageId = expiringNode.Id,
+                    PageName = expiringNode.Name,
+                    PagePath = expiringNode.Path,
+                    PageUrl = helper.Url(expiringNode.Id),
+                    ExpiryDate = (DateTime)expiringNode.ExpireDate
+                };
+
                 // Add the current page to each user that has edit rights
                 foreach (var author in nodeAuthors)
                 {
-                    var userPage = new UserPageModel
-                    {
-                        PageId = expiringNode.Id,
-                        PageName = expiringNode.Name,
-                        PagePath = expiringNode.Path,
-                        PageUrl = helper.Url(expiringNode.Id),
-                        ExpiryDate = (DateTime)expiringNode.ExpireDate
-                    };
-
                     var user = userPages.FirstOrDefault(f => f.User.UserId == author.UserId);
 
                     // Create a User record if one does not yet exist
                     if (user == null)
                     {
                         var pUser = _userService.GetUserById(author.UserId);
+
+                        // Check that this author is not Disabled / Locked Out
+                        // If they are, end this loop and move onto the next author
+                        if (!pUser.IsApproved) continue;
+
                         var p = new UmbracoUserModel
                         {
                             UserId = author.UserId,

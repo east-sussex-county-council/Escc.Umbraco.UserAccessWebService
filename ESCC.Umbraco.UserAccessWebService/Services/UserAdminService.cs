@@ -40,7 +40,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                         FullName = x.Name,
                         EmailAddress = x.Email,
                         UserId = x.Id,
-                        Lock = x.IsApproved,
+                        UserLocked = !x.IsApproved,
                         IsWebAuthor = (x.UserType.Alias == _webAuthorUserType)
                     }).ToList();
 
@@ -62,7 +62,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                     FullName = x.Name,
                     EmailAddress = x.Email,
                     UserId = x.Id,
-                    Lock = x.IsApproved,
+                    UserLocked = !x.IsApproved,
                     IsWebAuthor = (x.UserType.Alias == _webAuthorUserType)
                 }).ToList();
 
@@ -84,7 +84,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                 FullName = user.Name,
                 EmailAddress = user.Email,
                 UserId = user.Id,
-                Lock = user.IsApproved,
+                UserLocked = !user.IsApproved,
                 IsWebAuthor = (user.UserType.Alias == _webAuthorUserType)
             };
 
@@ -368,6 +368,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                         UserId = userPerm.UserId,
                         FullName = pUser.Name,
                         EmailAddress = pUser.Email,
+                        UserLocked = !pUser.IsApproved,
                         PageId = userPerm.EntityId,
                         PageName = _contentService.GetById(userPerm.EntityId).Name,
                         PagePath = PageBreadcrumb(contentNode)
@@ -409,6 +410,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                     UserId = perm.UserId,
                     FullName = pUser.Name,
                     EmailAddress = pUser.Email,
+                    UserLocked = !pUser.IsApproved,
                     PageId = page.Id,
                     PageName = page.Name
                 };
@@ -454,7 +456,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                     FullName = webEditor.Name,
                     EmailAddress = webEditor.Email,
                     IsWebAuthor = false,
-                    Lock = false
+                    UserLocked = !webEditor.IsApproved
                 };
           
                 webEditorsList.Add(ed);
