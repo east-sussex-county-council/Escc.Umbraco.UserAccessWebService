@@ -417,7 +417,8 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
 
                 permList.Add(p);
             }
-            return permList;
+
+            return permList.OrderBy(o => o.FullName).ToList();
         }
 
         /// <summary>
@@ -462,7 +463,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                 webEditorsList.Add(ed);
             }
 
-            return webEditorsList;
+            return webEditorsList.OrderBy(o => o.FullName).ToList();
         }
 
         /// <summary>
@@ -533,7 +534,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                 
             }
 
-            return permList;
+            return permList.OrderBy(o => o.PagePath).ToList();
         }
 
         /// <summary>
