@@ -54,7 +54,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             webStaff.User = webstaffUser;
             userPages.Add(webStaff);
 
-            var helper = new UmbracoHelper();
+            var helper = new UmbracoHelper(UmbracoContext.Current);
 
             foreach (var expiringNode in expiringNodes)
             {
@@ -76,7 +76,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                         PageId = expiringNode.Id,
                         PageName = expiringNode.Name,
                         PagePath = expiringNode.Path,
-                        PageUrl = helper.Url(expiringNode.Id),
+                        PageUrl = helper.NiceUrl(expiringNode.Id),
                         ExpiryDate = (DateTime)expiringNode.ExpireDate
                     };
 
@@ -89,7 +89,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                     PageId = expiringNode.Id,
                     PageName = expiringNode.Name,
                     PagePath = expiringNode.Path,
-                    PageUrl = helper.Url(expiringNode.Id),
+                    PageUrl = helper.NiceUrl(expiringNode.Id),
                     ExpiryDate = (DateTime)expiringNode.ExpireDate
                 };
 

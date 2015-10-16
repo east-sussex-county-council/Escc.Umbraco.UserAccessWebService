@@ -8,6 +8,8 @@
 
         public int UserId { get; set; }
 
+        public string Username { get; set; }
+
         public string Created { get; set; }
 
         public int TargetId { get; set; }
@@ -21,5 +23,7 @@
         public bool UserLocked { get; set; }
 
         public string PagePath { get; set; }
+
+        public string PageUrl { get; set; }
     }
 }

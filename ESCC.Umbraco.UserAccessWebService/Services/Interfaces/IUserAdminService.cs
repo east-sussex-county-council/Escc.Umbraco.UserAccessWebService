@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ESCC.Umbraco.UserAccessWebService.Models;
 using Umbraco.Core.Models;
 
@@ -43,6 +44,8 @@ namespace ESCC.Umbraco.UserAccessWebService.Services.Interfaces
         ContentTreeModel GetPage(int pageId);
 
         IContent GetContentNode(string url);
+
+        IContent GetContentNode(Int32 pageId);
 
         IList<UmbracoUserModel> LookupWebEditors();
     }

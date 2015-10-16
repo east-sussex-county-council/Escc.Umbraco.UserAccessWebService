@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using ESCC.Umbraco.UserAccessWebService.Models;
+using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
 using umbraco;
 using Umbraco.Core.Models;
 using Umbraco.Core.Persistence.Querying;
 using Umbraco.Core.Services;
-using ESCC.Umbraco.UserAccessWebService.Models;
-using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
+using Umbraco.Web;
 
 namespace ESCC.Umbraco.UserAccessWebService.Services
 {
@@ -343,6 +344,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         /// <returns>User page permission set</returns>
         public IList<PermissionsModel> CheckUserPermissions(int userId)
         {
+            var helper = new UmbracoHelper(UmbracoContext.Current);
             var user = _userService.GetUserById(userId);
 
             IList<PermissionsModel> permList = new List<PermissionsModel>();
@@ -366,12 +368,14 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                     var p = new PermissionsModel
                     {
                         UserId = userPerm.UserId,
+                        Username = pUser.Username,
                         FullName = pUser.Name,
                         EmailAddress = pUser.Email,
                         UserLocked = !pUser.IsApproved,
                         PageId = userPerm.EntityId,
                         PageName = _contentService.GetById(userPerm.EntityId).Name,
-                        PagePath = PageBreadcrumb(contentNode)
+                        PagePath = PageBreadcrumb(contentNode),
+                        PageUrl = helper.NiceUrl(contentNode.Id)
                     };
 
                     permList.Add(p);
@@ -408,6 +412,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                 var p = new PermissionsModel
                 {
                     UserId = perm.UserId,
+                    Username = pUser.Username,
                     FullName = pUser.Name,
                     EmailAddress = pUser.Email,
                     UserLocked = !pUser.IsApproved,
@@ -428,8 +433,19 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         /// <returns>Found page</returns>
         public IContent GetContentNode(string url)
         {
-            var pageId = uQuery.GetNodeIdByUrl(url);
+            // The url may be numeric, if so, don't lookup the page just convert to Int
+            var pageId = !url.All(char.IsDigit) ? uQuery.GetNodeIdByUrl(url) : int.Parse(url);
 
+            return GetContentNode(pageId);
+        }
+
+        /// <summary>
+        /// Get Umbraco node by Id
+        /// </summary>
+        /// <param name="pageId">Id of page to get</param>
+        /// <returns>Found page</returns>
+        public IContent GetContentNode(Int32 pageId)
+        {
             return _contentService.GetById(pageId);
         }
 
@@ -500,6 +516,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             }
 
             // Get ALL site content
+            var helper = new UmbracoHelper(UmbracoContext.Current);
             var permList = new List<PermissionsModel>();
             var rootContent = _contentService.GetRootContent().OrderBy(o => o.SortOrder);
 
@@ -511,7 +528,8 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                 {
                     PageId = rootNode.Id,
                     PageName = rootNode.Name,
-                    PagePath = PageBreadcrumb(rootNode)
+                    PagePath = PageBreadcrumb(rootNode),
+                    PageUrl = library.NiceUrl(rootNode.Id)
                 };
 
                 permList.Add(rn);
@@ -526,7 +544,8 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                     {
                         PageId = contentItem.Id,
                         PageName = contentItem.Name,
-                        PagePath = PageBreadcrumb(contentItem)
+                        PagePath = PageBreadcrumb(contentItem),
+                        PageUrl = helper.NiceUrl(contentItem.Id)
                     };
 
                     permList.Add(p);
