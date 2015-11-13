@@ -2,6 +2,9 @@
 
 namespace ESCC.Umbraco.UserAccessWebService.Models
 {
+    /// <summary>
+    /// Contains details of links into a page from multiple sources
+    /// </summary>
     public class PageLinksModel
     {
         public PageLinksModel()

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Web.Helpers;
 using ESCC.Umbraco.UserAccessWebService.Models;
 using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
 using Examine;
@@ -11,6 +12,8 @@ using Umbraco.Core.Models;
 using Umbraco.Core.Persistence.Querying;
 using Umbraco.Core.Services;
 using Umbraco.Web;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace ESCC.Umbraco.UserAccessWebService.Services
 {
@@ -517,12 +520,22 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             return pageDetails;
         }
 
+        /// <summary>
+        /// Get details of all links into "page"
+        /// </summary>
+        /// <param name="links">list of links</param>
+        /// <param name="page">target page</param>
         private void GetPageInboundLinks_Examine(List<PageInLinkModel> links, IContent page)
-        {            
+        {
+            // Get the Id of the target page
             var pageId = page.Id.ToString();
+
+            // Setup the Examine search
             var searcher = ExamineManager.Instance.SearchProviderCollection["NodeLinksSearcher"];
             var searchCriteria = searcher.CreateSearchCriteria();
 
+            // search Examine index for all nodes where pageId is listed in NodeLinksTo field, indicating that
+            // it links to the target page
             var query = searchCriteria.Field("NodeLinksTo", pageId).Compile();
             var searchResults = searcher.Search(query);
 
@@ -547,7 +560,27 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                     pageUrl = "[Parent unpublished]";
                 }
 
-                var link = new PageInLinkModel { PageId = nodeId, PageName = nodeName, PageUrl = pageUrl };
+                // Get the list of fields where thelink is entered
+                // {"Description 1": {"Nodes":[ 18839 ]},"Introductory text": {"Nodes":[ 18839 , 18885 ]}}
+                List<string> fieldNames = new List<string>();
+
+                var jStr = inlink.Fields["NodeLinksTo"];
+                JsonSerializerSettings config = new JsonSerializerSettings {Formatting = Formatting.None};
+                dynamic result = JsonConvert.DeserializeObject(jStr, config);
+
+                foreach (var res in result)
+                {
+                    string fldVal = res.Value.ToString();
+                    fldVal = fldVal.Replace(Environment.NewLine, " ");
+                    fldVal = fldVal.Replace(",", " ");
+                    if (fldVal.Contains(String.Format(" {0} ", pageId)))
+                    {
+                        fieldNames.Add(res.Name);
+                    }
+                }
+
+                //
+                var link = new PageInLinkModel { PageId = nodeId, PageName = nodeName, PageUrl = pageUrl, FieldNames = fieldNames};
 
                 // Don't add if already in the list
                 if (links.Any(l => l.PageId == link.PageId))
