@@ -2,18 +2,15 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
-using System.Web.Helpers;
 using ESCC.Umbraco.UserAccessWebService.Models;
 using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
 using Examine;
+using Newtonsoft.Json;
 using umbraco;
-using Umbraco.Core;
 using Umbraco.Core.Models;
 using Umbraco.Core.Persistence.Querying;
 using Umbraco.Core.Services;
 using Umbraco.Web;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 
 namespace ESCC.Umbraco.UserAccessWebService.Services
 {
@@ -512,10 +509,6 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             // Search Examine index (Umbraco)
             GetPageInboundLinks_Examine(pageDetails.InboundLinksLocal, page);
 
-            // Search Redirects database
-
-            // Search Inspyder extract
-
             // Return data
             return pageDetails;
         }
@@ -552,7 +545,18 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                 var nodeId = inlink.Id;
                 var nodeName = node.Name;
 
-                var pageUrl = node.Published ? library.NiceUrl(nodeId) : "[Currently unpublished]";
+                string pageUrl;
+                var hasPubVersion = node.HasPublishedVersion();
+
+                if (node.Published)
+                {
+                    pageUrl = library.NiceUrl(nodeId);
+                }
+                else
+                {
+                    pageUrl = hasPubVersion ? "[Currently unpublished]" : "[Not yet published]";
+                }
+
 
                 // The page itself may be published, but its Url will be "#" if a parent node is unpublished
                 if (pageUrl == "#")
