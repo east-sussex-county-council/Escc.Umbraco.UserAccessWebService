@@ -606,6 +606,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
 
             // Get the Web Author User Type
             var userType = _userService.GetUserTypeByAlias(_webAuthorUserType);
+
             // Get all users whose type is Web Author
             var users = _userService.GetAll(0, int.MaxValue, out totalRecords).Where(t => t.UserType.Id == userType.Id);
 
@@ -613,6 +614,12 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             IList<int> webAuthorPages = new List<int>();
             foreach (var u in users)
             {
+                // If user is locked / Disabled then their permissions do not apply
+                if (!u.IsApproved)
+                {
+                    continue;
+                }
+
                 var userPermissions = _userService.GetPermissions(u);
                 foreach (var userPerm in userPermissions)
                 {
@@ -637,20 +644,26 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
 
             foreach (var rootNode in rootContent)
             {
+                // Ignore pages in the Recycle Bin
                 if (rootNode.Trashed) continue;
 
-                var rn = new PermissionsModel
+                // Check if any Web Authors have permissions for this root node
+                if (!webAuthorPages.Contains(rootNode.Id))
                 {
-                    PageId = rootNode.Id,
-                    PageName = rootNode.Name,
-                    PagePath = PageBreadcrumb(rootNode),
-                    PageUrl = library.NiceUrl(rootNode.Id)
-                };
+                    var rn = new PermissionsModel
+                    {
+                        PageId = rootNode.Id,
+                        PageName = rootNode.Name,
+                        PagePath = PageBreadcrumb(rootNode),
+                        PageUrl = library.NiceUrl(rootNode.Id)
+                    };
 
-                permList.Add(rn);
+                    permList.Add(rn);
+                }
 
-                var allContent =
-                    rootNode.Descendants().Where(a => !webAuthorPages.Contains(a.Id)).OrderBy(o => o.SortOrder);
+                // Extract all content that is NOT included in the webAuthorPages list
+                // i.e. those pages that DO NOT have a currently enabled web author assigned
+                var allContent = rootNode.Descendants().Where(a => !webAuthorPages.Contains(a.Id)).OrderBy(o => o.SortOrder);
 
                 foreach (var contentItem in allContent)
                 {
@@ -678,10 +691,26 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         /// <returns>Breadcrumb to supplied page</returns>
         private string PageBreadcrumb(IContent contentNode)
         {
+            string pageUrl;
             var rtn = String.Empty;
             if (contentNode == null) return rtn;
 
-            //IContent contentNode = _contentService.GetById(nodeId);
+            var hasPubVersion = contentNode.HasPublishedVersion();
+
+            if (contentNode.Published)
+            {
+                pageUrl = library.NiceUrl(contentNode.Id);
+            }
+            else
+            {
+                return hasPubVersion ? "[Currently unpublished] - " : "[Not yet published] - ";
+            }
+
+            // The page itself may be published, but its Url will be "#" if a parent node is unpublished
+            if (pageUrl == "#")
+            {
+                return "[Parent unpublished] - ";
+            }
 
             // First item will be -1 (Content),
             // Second item will be the home page
