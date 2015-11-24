@@ -33,7 +33,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         /// </returns>
         public IList<UserPagesModel> GetExpiringNodesByUser(int noOfDaysFrom)
         {
-            // Get website home page. Sort the nodes to ensure we get the actual home page which is (must be0 the first node.
+            // Get website home page. Sort the nodes to ensure we get the actual home page which is (must be) the first node.
             var home = _contentService.GetRootContent().OrderBy(o => o.SortOrder).First();
 
             // Get pages that expire within the declared period, order by expiry date
@@ -64,7 +64,14 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                 UserPageModel userPage;
 
                 // Get Web Authors with permission
-                var perms = _contentService.GetPermissionsForEntity(expiringNode);
+                // if no permissions at all, then there will be only one element which will contain a "-"
+                // If only the default permission then there will only be one element which will contain "F" (Browse Node)
+                var perms =
+                    _contentService.GetPermissionsForEntity(expiringNode)
+                        .Where(
+                            x =>
+                                x.AssignedPermissions.Count() > 1 ||
+                                (x.AssignedPermissions[0] != "-" && x.AssignedPermissions[0] != "F"));
 
                 var nodeAuthors = perms as IList<EntityPermission> ?? perms.ToList();
 
