@@ -16,8 +16,8 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
 {
     public class UserAdminService : IUserAdminService
     {
-        private readonly IUserService _userService;
         private readonly IContentService _contentService;
+        private readonly IUserService _userService;
         private readonly string _webAuthorUserType;
 
         public UserAdminService(IUserService userService, IContentService contentService)
@@ -265,20 +265,6 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             return rtn;
         }
 
-        private List<string[]> GetDefaultUserPermissions(int userId)
-        {
-            var user = _userService.GetUserById(userId);
-            var userDefaultPerms = new List<string[]>();
-            foreach (var perm in user.DefaultPermissions)
-            {
-                var val = new string[1];
-                val[0] = perm;
-                userDefaultPerms.Add(val);
-            }
-
-            return userDefaultPerms;
-        }
-
         /// <summary>
         ///     Set default permissions for user on supplied page
         /// </summary>
@@ -327,17 +313,6 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             }
 
             if (permList != null) ReplaceUserPagePermissions(user.Id, model.PageId, permList.ToCharArray());
-        }
-
-        /// <summary>
-        ///     Replace current permissions for user on page with supplied permissions
-        /// </summary>
-        /// <param name="userId">Target user</param>
-        /// <param name="pageId">Target page</param>
-        /// <param name="perms">New permission set</param>
-        private void ReplaceUserPagePermissions(int userId, int pageId, IEnumerable<char> perms)
-        {
-            _userService.ReplaceUserPermissions(userId, perms, pageId);
         }
 
         /// <summary>
@@ -395,11 +370,22 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         /// </summary>
         /// <param name="page">page to check</param>
         /// <returns>Permissions set</returns>
-        public IList<PermissionsModel> CheckPagePermissions(IContent page)
+        public PageUsersModel CheckPagePermissions(IContent page)
         {
-            IList<PermissionsModel> permList = new List<PermissionsModel>();
+            var permList = new PageUsersModel();
+
+            var permPage = new PageModel
+            {
+                PageId = page.Id,
+                PageName = page.Name
+            };
+
+            permList.Page = permPage;
+
 
             var perms = _contentService.GetPermissionsForEntity(page);
+
+            IList<UserPermissionModel> userPerms = new List<UserPermissionModel>();
 
             foreach (var perm in perms)
             {
@@ -414,21 +400,22 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                 // Only interested in Web Authors
                 if (pUser.UserType.Alias != _webAuthorUserType) continue;
 
-                var p = new PermissionsModel
+                // Create a permission object - set PermissionId = 1 to indicate user has permission to edit this page
+                var userPerm = new UserPermissionModel
                 {
                     UserId = perm.UserId,
-                    Username = pUser.Username,
+                    UserName = pUser.Username,
                     FullName = pUser.Name,
                     EmailAddress = pUser.Email,
                     UserLocked = !pUser.IsApproved,
-                    PageId = page.Id,
-                    PageName = page.Name
+                    PagePermissions = perm.AssignedPermissions
                 };
 
-                permList.Add(p);
+                userPerms.Add(userPerm);
             }
 
-            return permList.OrderBy(o => o.FullName).ToList();
+            permList.Users = userPerms.OrderBy(o => o.FullName).ToList();
+            return permList;
         }
 
         /// <summary>
@@ -455,36 +442,21 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
+        ///     Return list of Web Authors
+        /// </summary>
+        /// <returns>List of Web Authors</returns>
+        public IList<UmbracoUserModel> LookupWebAuthors(int[] excludeUsers)
+        {
+            return LookupUmbracoUser("WebAuthor", excludeUsers);
+        }
+
+        /// <summary>
         ///     Get list of Web Editors
         /// </summary>
         /// <returns>List of Web Editors</returns>
-        public IList<UmbracoUserModel> LookupWebEditors()
+        public IList<UmbracoUserModel> LookupWebEditors(int[] excludeUsers)
         {
-            var webEditorsList = new List<UmbracoUserModel>();
-
-            int totalRecords;
-
-            // Get the Web Author User Type
-            var userType = _userService.GetUserTypeByAlias("editor");
-            // Get all users whose type is Web Author
-            var users = _userService.GetAll(0, int.MaxValue, out totalRecords).Where(t => t.UserType.Id == userType.Id);
-
-            foreach (var webEditor in users)
-            {
-                var ed = new UmbracoUserModel
-                {
-                    UserId = webEditor.Id,
-                    UserName = webEditor.Username,
-                    FullName = webEditor.Name,
-                    EmailAddress = webEditor.Email,
-                    IsWebAuthor = false,
-                    UserLocked = !webEditor.IsApproved
-                };
-
-                webEditorsList.Add(ed);
-            }
-
-            return webEditorsList.OrderBy(o => o.FullName).ToList();
+            return LookupUmbracoUser("editor", excludeUsers);
         }
 
         /// <summary>
@@ -511,89 +483,6 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
 
             // Return data
             return pageDetails;
-        }
-
-        /// <summary>
-        /// Get details of all links into "page"
-        /// </summary>
-        /// <param name="links">list of links</param>
-        /// <param name="page">target page</param>
-        private void GetPageInboundLinks_Examine(List<PageInLinkModel> links, IContent page)
-        {
-            // Get the Id of the target page
-            var pageId = page.Id.ToString();
-
-            // Setup the Examine search
-            var searcher = ExamineManager.Instance.SearchProviderCollection["NodeLinksSearcher"];
-            var searchCriteria = searcher.CreateSearchCriteria();
-
-            // search Examine index for all nodes where pageId is listed in NodeLinksTo field, indicating that
-            // it links to the target page
-            var query = searchCriteria.Field("NodeLinksTo", pageId).Compile();
-            var searchResults = searcher.Search(query);
-
-            foreach (var inlink in searchResults)
-            {
-                // Get the Node
-                var node = _contentService.GetById(inlink.Id);
-                // skip if node was not found
-                if (node == null) continue;
-                //skip if node is in Recycle Bin
-                if (node.Trashed) continue;
-
-                // Get node details and add it to the list
-                var nodeId = inlink.Id;
-                var nodeName = node.Name;
-
-                string pageUrl;
-                var hasPubVersion = node.HasPublishedVersion();
-
-                if (node.Published)
-                {
-                    pageUrl = library.NiceUrl(nodeId);
-                }
-                else
-                {
-                    pageUrl = hasPubVersion ? "[Currently unpublished]" : "[Not yet published]";
-                }
-
-
-                // The page itself may be published, but its Url will be "#" if a parent node is unpublished
-                if (pageUrl == "#")
-                {
-                    pageUrl = "[Parent unpublished]";
-                }
-
-                // Get the list of fields where thelink is entered
-                // {"Description 1": {"Nodes":[ 18839 ]},"Introductory text": {"Nodes":[ 18839 , 18885 ]}}
-                List<string> fieldNames = new List<string>();
-
-                var jStr = inlink.Fields["NodeLinksTo"];
-                JsonSerializerSettings config = new JsonSerializerSettings {Formatting = Formatting.None};
-                dynamic result = JsonConvert.DeserializeObject(jStr, config);
-
-                foreach (var res in result)
-                {
-                    string fldVal = res.Value.ToString();
-                    fldVal = fldVal.Replace(Environment.NewLine, " ");
-                    fldVal = fldVal.Replace(",", " ");
-                    if (fldVal.Contains(String.Format(" {0} ", pageId)))
-                    {
-                        fieldNames.Add(res.Name);
-                    }
-                }
-
-                //
-                var link = new PageInLinkModel { PageId = nodeId, PageName = nodeName, PageUrl = pageUrl, FieldNames = fieldNames};
-
-                // Don't add if already in the list
-                if (links.Any(l => l.PageId == link.PageId))
-                {
-                    continue;
-                }
-
-                links.Add(link);
-            }
         }
 
         /// <summary>
@@ -663,7 +552,8 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
 
                 // Extract all content that is NOT included in the webAuthorPages list
                 // i.e. those pages that DO NOT have a currently enabled web author assigned
-                var allContent = rootNode.Descendants().Where(a => !webAuthorPages.Contains(a.Id)).OrderBy(o => o.SortOrder);
+                var allContent =
+                    rootNode.Descendants().Where(a => !webAuthorPages.Contains(a.Id)).OrderBy(o => o.SortOrder);
 
                 foreach (var contentItem in allContent)
                 {
@@ -682,6 +572,185 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             }
 
             return permList.OrderBy(o => o.PagePath).ToList();
+        }
+
+        /// <summary>
+        ///     Copy specifically assigned permissions (not default group permissions) from one user to another
+        /// </summary>
+        /// <param name="model">Source and Target users</param>
+        public void ClonePermissions(PermissionsModel model)
+        {
+            var sourceUser = _userService.GetUserById(model.UserId);
+
+            var userPermissions = _userService.GetPermissions(sourceUser);
+
+            var targetUser = new List<int> {model.TargetId};
+
+            foreach (var permissions in userPermissions)
+            {
+                var content = _contentService.GetById(permissions.EntityId);
+
+                foreach (var permission in permissions.AssignedPermissions)
+                {
+                    _contentService.AssignContentPermission(content, permission[0], targetUser);
+                }
+            }
+        }
+
+        public ContentTreeModel GetPage(int pageId)
+        {
+            var page = _contentService.GetById(pageId);
+
+            var model = new ContentTreeModel {PageName = page.Name};
+
+            return model;
+        }
+
+        private List<string[]> GetDefaultUserPermissions(int userId)
+        {
+            var user = _userService.GetUserById(userId);
+            var userDefaultPerms = new List<string[]>();
+            foreach (var perm in user.DefaultPermissions)
+            {
+                var val = new string[1];
+                val[0] = perm;
+                userDefaultPerms.Add(val);
+            }
+
+            return userDefaultPerms;
+        }
+
+        /// <summary>
+        ///     Get details of all links into "page"
+        /// </summary>
+        /// <param name="links">list of links</param>
+        /// <param name="page">target page</param>
+        private void GetPageInboundLinks_Examine(List<PageInLinkModel> links, IContent page)
+        {
+            // Get the Id of the target page
+            var pageId = page.Id.ToString();
+
+            // Setup the Examine search
+            var searcher = ExamineManager.Instance.SearchProviderCollection["NodeLinksSearcher"];
+            var searchCriteria = searcher.CreateSearchCriteria();
+
+            // search Examine index for all nodes where pageId is listed in NodeLinksTo field, indicating that
+            // it links to the target page
+            var query = searchCriteria.Field("NodeLinksTo", pageId).Compile();
+            var searchResults = searcher.Search(query);
+
+            foreach (var inlink in searchResults)
+            {
+                // Get the Node
+                var node = _contentService.GetById(inlink.Id);
+                // skip if node was not found
+                if (node == null) continue;
+                //skip if node is in Recycle Bin
+                if (node.Trashed) continue;
+
+                // Get node details and add it to the list
+                var nodeId = inlink.Id;
+                var nodeName = node.Name;
+
+                string pageUrl;
+                var hasPubVersion = node.HasPublishedVersion();
+
+                if (node.Published)
+                {
+                    pageUrl = library.NiceUrl(nodeId);
+                }
+                else
+                {
+                    pageUrl = hasPubVersion ? "[Currently unpublished]" : "[Not yet published]";
+                }
+
+
+                // The page itself may be published, but its Url will be "#" if a parent node is unpublished
+                if (pageUrl == "#")
+                {
+                    pageUrl = "[Parent unpublished]";
+                }
+
+                // Get the list of fields where thelink is entered
+                // {"Description 1": {"Nodes":[ 18839 ]},"Introductory text": {"Nodes":[ 18839 , 18885 ]}}
+                var fieldNames = new List<string>();
+
+                var jStr = inlink.Fields["NodeLinksTo"];
+                var config = new JsonSerializerSettings {Formatting = Formatting.None};
+                dynamic result = JsonConvert.DeserializeObject(jStr, config);
+
+                foreach (var res in result)
+                {
+                    string fldVal = res.Value.ToString();
+                    fldVal = fldVal.Replace(Environment.NewLine, " ");
+                    fldVal = fldVal.Replace(",", " ");
+                    if (fldVal.Contains(String.Format(" {0} ", pageId)))
+                    {
+                        fieldNames.Add(res.Name);
+                    }
+                }
+
+                //
+                var link = new PageInLinkModel
+                {
+                    PageId = nodeId,
+                    PageName = nodeName,
+                    PageUrl = pageUrl,
+                    FieldNames = fieldNames
+                };
+
+                // Don't add if already in the list
+                if (links.Any(l => l.PageId == link.PageId))
+                {
+                    continue;
+                }
+
+                links.Add(link);
+            }
+        }
+
+        /// <summary>
+        ///     Get a list of Umbraco users of the required type
+        /// </summary>
+        /// <param name="usertypeAlias">Type of Umbraco user required</param>
+        /// <param name="excludeUsers">List of users to exclude from the returned set</param>
+        /// <returns>List of Umbraco Users of the required type, excluding those in the excluded users list</returns>
+        private IList<UmbracoUserModel> LookupUmbracoUser(string usertypeAlias, int[] excludeUsers)
+        {
+            var userList = new List<UmbracoUserModel>();
+            var excludeList = new List<UmbracoUserModel>();
+
+            if (excludeUsers != null)
+                foreach (var user in excludeUsers)
+                {
+                    var u = LookupUserById(user);
+                    if (u != null) excludeList.Add(u);
+                }
+
+            int totalRecords;
+
+            // Get the User Type
+            var userType = _userService.GetUserTypeByAlias(usertypeAlias);
+            // Get all users of the required Type
+            var users = _userService.GetAll(0, int.MaxValue, out totalRecords).Where(t => t.UserType.Id == userType.Id);
+
+            foreach (var user in users)
+            {
+                var ed = new UmbracoUserModel
+                {
+                    UserId = user.Id,
+                    UserName = user.Username,
+                    FullName = user.Name,
+                    EmailAddress = user.Email,
+                    IsWebAuthor = (usertypeAlias == "author"),
+                    UserLocked = !user.IsApproved
+                };
+
+                userList.Add(ed);
+            }
+
+            // return all users except those in the excludeUsers array.
+            return userList.Except(excludeList).OrderBy(o => o.FullName).ToList();
         }
 
         /// <summary>
@@ -732,35 +801,14 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        ///     Copy specifically assigned permissions (not default group permissions) from one user to another
+        ///     Replace current permissions for user on page with supplied permissions
         /// </summary>
-        /// <param name="model">Source and Target users</param>
-        public void ClonePermissions(PermissionsModel model)
+        /// <param name="userId">Target user</param>
+        /// <param name="pageId">Target page</param>
+        /// <param name="perms">New permission set</param>
+        private void ReplaceUserPagePermissions(int userId, int pageId, IEnumerable<char> perms)
         {
-            var sourceUser = _userService.GetUserById(model.UserId);
-
-            var userPermissions = _userService.GetPermissions(sourceUser);
-
-            var targetUser = new List<int> {model.TargetId};
-
-            foreach (var permissions in userPermissions)
-            {
-                var content = _contentService.GetById(permissions.EntityId);
-
-                foreach (var permission in permissions.AssignedPermissions)
-                {
-                    _contentService.AssignContentPermission(content, permission[0], targetUser);
-                }
-            }
-        }
-
-        public ContentTreeModel GetPage(int pageId)
-        {
-            var page = _contentService.GetById(pageId);
-
-            var model = new ContentTreeModel {PageName = page.Name};
-
-            return model;
+            _userService.ReplaceUserPermissions(userId, perms, pageId);
         }
     }
 }

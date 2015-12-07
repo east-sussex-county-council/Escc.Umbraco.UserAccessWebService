@@ -1,4 +1,6 @@
-﻿namespace ESCC.Umbraco.UserAccessWebService.Models
+﻿using System;
+
+namespace ESCC.Umbraco.UserAccessWebService.Models
 {
     public class PermissionsModel
     {
@@ -10,7 +12,7 @@
 
         public string Username { get; set; }
 
-        public string Created { get; set; }
+        public DateTime? Created { get; set; }
 
         public int TargetId { get; set; }
 

@@ -295,6 +295,9 @@
     <Compile Include="App_Start\EventHandler.cs" />
     <Compile Include="Models\PageInLinkModel.cs" />
     <Compile Include="Models\PageLinksModel.cs" />
+    <Compile Include="Models\PageModel.cs" />
+    <Compile Include="Models\PageUsersModel.cs" />
+    <Compile Include="Models\UserPermissionModel.cs" />
     <Compile Include="Models\UserPageModel.cs" />
     <Compile Include="Models\UserPagesModel.cs" />
     <Compile Include="Services\ExpiringPagesService.cs" />
