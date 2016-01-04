@@ -108,7 +108,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             user.Name = model.FullName;
 
             // Set Content Start Node to the Home page.
-            var home = _contentService.GetRootContent().First();
+            var home = _contentService.GetRootContent().First(x => x.ContentType.Alias == "HomePage");
             user.StartContentId = home.Id;
 
             // Give user access to Content and Media sections
