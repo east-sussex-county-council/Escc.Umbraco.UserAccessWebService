@@ -2,8 +2,8 @@
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using Escc.BasicAuthentication.WebApi;
 using ESCC.Umbraco.UserAccessWebService.Models;
-using ESCC.Umbraco.UserAccessWebService.Services;
 using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
 using Umbraco.Web.WebApi;
 
