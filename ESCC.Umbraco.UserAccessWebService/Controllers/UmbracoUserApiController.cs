@@ -245,7 +245,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Controllers
             try
             {
                 // Do not need or want to exclude any Editors, so pass an empy array
-                int[] userId = { };
+                int[] userId = {};
 
                 var users = _userAdminService.LookupWebEditors(userId);
 
