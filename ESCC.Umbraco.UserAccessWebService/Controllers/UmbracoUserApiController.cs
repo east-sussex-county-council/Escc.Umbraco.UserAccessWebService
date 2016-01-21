@@ -4,7 +4,9 @@ using System.Net.Http;
 using System.Web.Http;
 using Escc.BasicAuthentication.WebApi;
 using ESCC.Umbraco.UserAccessWebService.Models;
+using ESCC.Umbraco.UserAccessWebService.Services;
 using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
+using Umbraco.Core.Services;
 using Umbraco.Web.WebApi;
 
 namespace ESCC.Umbraco.UserAccessWebService.Controllers
@@ -14,11 +16,13 @@ namespace ESCC.Umbraco.UserAccessWebService.Controllers
     {
         private readonly IExpiringPagesService _expiringPagesService;
         private readonly IUserAdminService _userAdminService;
+        public readonly IUserService UserService;
 
-        public UmbracoUserApiController(IUserAdminService userAdminService, IExpiringPagesService expiringPagesService)
+        public UmbracoUserApiController()
         {
-            _userAdminService = userAdminService;
-            _expiringPagesService = expiringPagesService;
+            UserService = Services.UserService;
+            _userAdminService = new UserAdminService(UserService);
+            _expiringPagesService = new ExpiringPagesService(UserService);
         }
 
         [HttpPost]

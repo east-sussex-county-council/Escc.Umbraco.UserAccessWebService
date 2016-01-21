@@ -20,10 +20,10 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         private readonly IUserService _userService;
         private readonly string _webAuthorUserType;
 
-        public UserAdminService(IUserService userService, IContentService contentService)
+        public UserAdminService(IUserService userService)
         {
             _userService = userService;
-            _contentService = contentService;
+            _contentService = new ContentService();
             _webAuthorUserType = ConfigurationManager.AppSettings["WebAuthorUserType"];
         }
 

@@ -16,10 +16,10 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         private readonly IContentService _contentService;
         private readonly IUserService _userService;
 
-        public ExpiringPagesService(IUserService userService, IContentService contentService)
+        public ExpiringPagesService(IUserService userService)
         {
             _userService = userService;
-            _contentService = contentService;
+            _contentService = new ContentService();
         }
 
         /// <summary>
