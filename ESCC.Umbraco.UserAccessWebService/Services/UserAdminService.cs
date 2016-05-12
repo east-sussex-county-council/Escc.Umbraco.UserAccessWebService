@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using umbraco;
 using Umbraco.Core.Models;
-using Umbraco.Core.Models.Membership;
 using Umbraco.Core.Persistence.Querying;
 using Umbraco.Core.Services;
 using UmbracoWebServices.Models;
@@ -357,7 +357,7 @@ namespace UmbracoWebServices.Services
         /// <returns>Permissions set</returns>
         public IList<PermissionsModel> CheckPagePermissions(string url)
         {
-            var pageId = umbraco.uQuery.GetNodeIdByUrl(url);
+            var pageId = uQuery.GetNodeIdByUrl(url);
             var page = _contentService.GetById(pageId);
             var perms = _contentService.GetPermissionsForEntity(page);
 
@@ -390,32 +390,48 @@ namespace UmbracoWebServices.Services
             var webAuthorUserType = ConfigurationManager.AppSettings["WebAuthorUserType"];
 
             int totalRecords;
+
+            // Get the Web Author User Type
             var userType = _userService.GetUserTypeByAlias(webAuthorUserType);
-            var users = _userService.GetAll(0,100,out totalRecords).Where(t => t.UserType == userType);
+            // Get all users whose type is Web Author
+            var users = _userService.GetAll(0,100,out totalRecords).Where(t => t.UserType.Id == userType.Id);
 
-            IList<PermissionsModel> permList = new List<PermissionsModel>();
+            // Get unique list of pages that have a Web Author
+            IList<int> webAuthorPages = new List<int>();
+            foreach (var u in users)
+            {
+                var userPermissions = _userService.GetPermissions(u);
+                foreach (var userPerm in userPermissions)
+                {
+                    // Assume: 
+                    // if no permissions at all, then there will be only one element which will contain a "-"
+                    // If only the default permission then there will only be one element which will contain "F" (Browse Node)
+                    if (userPerm.AssignedPermissions.Count() > 1 || (userPerm.AssignedPermissions[0] != "-" && userPerm.AssignedPermissions[0] != "F"))
+                    {
+                        if (!webAuthorPages.Contains(userPerm.EntityId))
+                        {
+                            webAuthorPages.Add(userPerm.EntityId);
+                        }
+                    }
+                }
+            }
+
+            // Get ALL site content
+            var permList = new List<PermissionsModel>();
             var rootContent = _contentService.GetRootContent().FirstOrDefault();
-
             if (rootContent == null) return null;
-
-            var allContent = rootContent.Descendants();
+            var allContent = rootContent.Descendants().Where(a => !webAuthorPages.Contains(a.Id));
 
             foreach (var contentItem in allContent)
             {
-                IEnumerable<EntityPermission> perms = _contentService.GetPermissionsForEntity(contentItem);
-
-                var u = users.First().use
-                if (!perms.Where(p => users.Intersect(p.UserId)))
+                var p = new PermissionsModel
                 {
-                    var p = new PermissionsModel
-                    {
-                        PageId = contentItem.Id,
-                        PageName = contentItem.Name,
-                        PagePath = PageBreadcrumb(contentItem.Id)
-                    };
+                    PageId = contentItem.Id,
+                    PageName = contentItem.Name,
+                    PagePath = PageBreadcrumb(contentItem.Id)
+                };
 
-                    permList.Add(p);
-                }
+                permList.Add(p);
             }
 
             return permList;
