@@ -1,24 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Web.Helpers;
 using System.Web.Http;
 using Umbraco.Web.WebApi;
 using UmbracoWebServices.Models;
-using UmbracoWebServices.Services;
+using UmbracoWebServices.Services.Interfaces;
 
 namespace UmbracoWebServices.Controllers
 {
     [Authorize]
     public class UmbracoUserApiController : UmbracoApiController
     {
-        private readonly IUserAdminService userAdminService;
+        private readonly IUserAdminService _userAdminService;
 
         public UmbracoUserApiController(IUserAdminService userAdminService)
         {
-            this.userAdminService = userAdminService;
+            _userAdminService = userAdminService;
         }
 
         //[Authorisation.RequireHttpsAttribute]
@@ -27,7 +24,7 @@ namespace UmbracoWebServices.Controllers
         {
             try
             {
-                var users = userAdminService.LookupUserByEmail(emailaddress);
+                var users = _userAdminService.LookupUserByEmail(emailaddress);
 
                 return Request.CreateResponse(HttpStatusCode.OK, users);
             }
@@ -43,7 +40,7 @@ namespace UmbracoWebServices.Controllers
         {
             try
             {
-                var users = userAdminService.LookupUserByUsername(username);
+                var users = _userAdminService.LookupUserByUsername(username);
 
                 return Request.CreateResponse(HttpStatusCode.OK, users);
             }
@@ -59,7 +56,7 @@ namespace UmbracoWebServices.Controllers
         {
             try
             {
-                var users = userAdminService.LookupUserById(id);
+                var users = _userAdminService.LookupUserById(id);
 
                 return Request.CreateResponse(HttpStatusCode.OK, users);
             }
@@ -75,7 +72,7 @@ namespace UmbracoWebServices.Controllers
         {
             try
             {
-                userAdminService.CreateUmbracoUser(model);
+                _userAdminService.CreateUmbracoUser(model);
 
                 return Request.CreateResponse(HttpStatusCode.OK);
             }
@@ -91,7 +88,7 @@ namespace UmbracoWebServices.Controllers
         {
             try
             {
-                userAdminService.ResetUsersPassword(model);
+                _userAdminService.ResetUsersPassword(model);
 
                 return Request.CreateResponse(HttpStatusCode.OK);
             }
@@ -107,7 +104,7 @@ namespace UmbracoWebServices.Controllers
         {
             try
             {
-                userAdminService.CreateUmbracoUser(model);
+                _userAdminService.CreateUmbracoUser(model);
 
                 return Request.CreateResponse(HttpStatusCode.OK);
             }
@@ -123,7 +120,7 @@ namespace UmbracoWebServices.Controllers
         {
             try
             {
-                userAdminService.DisableUser(model);
+                _userAdminService.DisableUser(model);
 
                 return Request.CreateResponse(HttpStatusCode.OK);
             }
@@ -139,7 +136,7 @@ namespace UmbracoWebServices.Controllers
         {
             try
             {
-                userAdminService.EnableUser(model);
+                _userAdminService.EnableUser(model);
 
                 return Request.CreateResponse(HttpStatusCode.OK);
             }
@@ -155,7 +152,23 @@ namespace UmbracoWebServices.Controllers
         {
             try
             {
-                var tree = userAdminService.ContentRoot();
+                var tree = _userAdminService.ContentRoot();
+
+                return Request.CreateResponse(HttpStatusCode.OK, tree);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadGateway, ex);
+            }
+        }
+
+        //[Authorisation.RequireHttpsAttribute]
+        [HttpGet]
+        public HttpResponseMessage GetContentRootUserPerms(int userId)
+        {
+            try
+            {
+                var tree = _userAdminService.ContentRoot(userId);
 
                 return Request.CreateResponse(HttpStatusCode.OK, tree);
             }
@@ -171,7 +184,23 @@ namespace UmbracoWebServices.Controllers
         {
             try
             {
-                var tree = userAdminService.ContentChild(id);
+                var tree = _userAdminService.ContentChild(id);
+
+                return Request.CreateResponse(HttpStatusCode.OK, tree);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadGateway, ex);
+            }
+        }
+
+        //[Authorisation.RequireHttpsAttribute]
+        [HttpGet]
+        public HttpResponseMessage GetContentChildUserPerms(int id, int userId)
+        {
+            try
+            {
+                var tree = _userAdminService.ContentChild(id, userId);
 
                 return Request.CreateResponse(HttpStatusCode.OK, tree);
             }
@@ -187,7 +216,7 @@ namespace UmbracoWebServices.Controllers
         {
             try
             {
-                userAdminService.SetUserPagePermissions(model);
+                _userAdminService.SetUserPagePermissions(model);
 
                 return Request.CreateResponse(HttpStatusCode.OK);
             }
@@ -203,7 +232,7 @@ namespace UmbracoWebServices.Controllers
         {
             try
             {
-                userAdminService.RemoveUserPagePermissions(model);
+                _userAdminService.RemoveUserPagePermissions(model);
 
                 return Request.CreateResponse(HttpStatusCode.OK);
             }
@@ -219,7 +248,39 @@ namespace UmbracoWebServices.Controllers
         {
             try
             {
-                var permissionsList = userAdminService.CheckUserPermissions(userId);
+                var permissionsList = _userAdminService.CheckUserPermissions(userId);
+
+                return Request.CreateResponse(HttpStatusCode.OK, permissionsList);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadGateway, ex);
+            }
+        }
+
+        //[Authorisation.RequireHttpsAttribute]
+        [HttpGet]
+        public HttpResponseMessage GetPagePermissions(string url)
+        {
+            try
+            {
+                var permissionsList = _userAdminService.CheckPagePermissions(url);
+
+                return Request.CreateResponse(HttpStatusCode.OK, permissionsList);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadGateway, ex);
+            }
+        }
+
+        //[Authorisation.RequireHttpsAttribute]
+        [HttpGet]
+        public HttpResponseMessage GetPagesWithoutAuthor()
+        {
+            try
+            {
+                var permissionsList = _userAdminService.GetPagesWithoutAuthor();
 
                 return Request.CreateResponse(HttpStatusCode.OK, permissionsList);
             }
@@ -235,7 +296,7 @@ namespace UmbracoWebServices.Controllers
         {
             try
             {
-                userAdminService.ClonePermissions(model);
+                _userAdminService.ClonePermissions(model);
 
                 return Request.CreateResponse(HttpStatusCode.OK);
             }

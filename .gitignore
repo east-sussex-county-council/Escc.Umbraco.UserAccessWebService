@@ -29,7 +29,6 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 *.scc
 *.pubxml
-[Ss]cripts*/
 .vs
 
 # Umbraco files
@@ -51,6 +50,12 @@ _ReSharper*/
 */css/*
 */usercontrols/*
 
+# LocalGov Starter Kit
+*/img/*
+*/css/*
+*/fonts/*
+*/scripts/*
+*/App_Plugins/*
 [Ww]eb.config
 [Ww]eb.Debug.config
 [Ww]eb.Release.config

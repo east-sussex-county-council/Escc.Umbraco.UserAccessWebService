@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
-namespace UmbracoWebServices.Models
+﻿namespace UmbracoWebServices.Models
 {
     public class PermissionsModel
     {
@@ -22,5 +17,7 @@ namespace UmbracoWebServices.Models
         public string FullName { get; set; }
 
         public string EmailAddress { get; set; }
+
+        public string PagePath { get; set; }
     }
 }

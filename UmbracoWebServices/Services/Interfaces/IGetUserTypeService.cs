@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace UmbracoWebServices.Services
+﻿namespace UmbracoWebServices.Services.Interfaces
 {
     public interface IGetUserTypeService
     {

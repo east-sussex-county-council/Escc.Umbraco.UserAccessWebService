@@ -1,11 +1,8 @@
 ﻿using Moq;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using umbraco.BusinessLogic;
-using UmbracoWebServices.Controllers;
 using UmbracoWebServices.Services;
+using UmbracoWebServices.Services.Interfaces;
 
 namespace UmbracoWebServiceTest
 {

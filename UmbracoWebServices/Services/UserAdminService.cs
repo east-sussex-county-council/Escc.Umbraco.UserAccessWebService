@@ -1,32 +1,32 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
-using umbraco.cms.presentation.create.controls;
+using Umbraco.Core.Models;
 using Umbraco.Core.Models.Membership;
-using Umbraco.Core.Persistence;
 using Umbraco.Core.Persistence.Querying;
 using Umbraco.Core.Services;
 using UmbracoWebServices.Models;
+using UmbracoWebServices.Services.Interfaces;
 
 namespace UmbracoWebServices.Services
 {
     public class UserAdminService : IUserAdminService
     {
-        private readonly IUserService userService;
-        private readonly IContentService contentService;
+        private readonly IUserService _userService;
+        private readonly IContentService _contentService;
 
         public UserAdminService(IUserService userService, IContentService contentService)
         {
-            this.userService = userService;
-            this.contentService = contentService;
+            _userService = userService;
+            _contentService = contentService;
         }
 
         public IList<UmbracoUserModel> LookupUserByEmail(string emailAddress)
         {
             int totalRecords;
             var modelList =
-                userService.FindByEmail(emailAddress, 0, 10, out totalRecords, StringPropertyMatchType.Exact)
+                _userService.FindByEmail(emailAddress, 0, 10, out totalRecords, StringPropertyMatchType.Exact)
                     .Select(x => new UmbracoUserModel()
                     {
                         UserName = x.Username,
@@ -42,7 +42,7 @@ namespace UmbracoWebServices.Services
         public IList<UmbracoUserModel> LookupUserByUsername(string username)
         {
             int totalRecords;
-            var modelList = userService.FindByUsername(username, 0, 10, out totalRecords, StringPropertyMatchType.Exact)
+            var modelList = _userService.FindByUsername(username, 0, 10, out totalRecords, StringPropertyMatchType.Exact)
                 .Select(x => new UmbracoUserModel()
                 {
                     UserName = x.Username,
@@ -57,7 +57,7 @@ namespace UmbracoWebServices.Services
 
         public UmbracoUserModel LookupUserById(int id)
         {
-            var user = userService.GetUserById(id);
+            var user = _userService.GetUserById(id);
 
             var model = new UmbracoUserModel
             {
@@ -72,42 +72,47 @@ namespace UmbracoWebServices.Services
 
         public void CreateUmbracoUser(UmbracoUserModel model)
         {
-            var user = userService.CreateWithIdentity(model.FullName, model.EmailAddress, Guid.NewGuid().ToString(),
-                "NewUser");
+            var webAuthorUserType = ConfigurationManager.AppSettings["WebAuthorUserType"];
+
+            var user = _userService.CreateWithIdentity(model.UserName, model.EmailAddress, Guid.NewGuid().ToString(), webAuthorUserType);
 
             user.Name = model.FullName;
 
-            userService.Save(user);
+            // Give user access to Content and Media sections
+            user.AddAllowedSection("content");
+            user.AddAllowedSection("media");
+
+            _userService.Save(user);
         }
 
         public void ResetUsersPassword(PasswordResetModel model)
         {
-            var user = userService.GetUserById(model.UserId);
+            var user = _userService.GetUserById(model.UserId);
 
-            userService.SavePassword(user, model.NewPassword);
+            _userService.SavePassword(user, model.NewPassword);
         }
 
         public void DisableUser(UmbracoUserModel model)
         {
-            var user = userService.GetUserById(model.UserId);
+            var user = _userService.GetUserById(model.UserId);
 
             user.IsApproved = false;
 
-            userService.Save(user);
+            _userService.Save(user);
         }
 
         public void EnableUser(UmbracoUserModel model)
         {
-            var user = userService.GetUserById(model.UserId);
+            var user = _userService.GetUserById(model.UserId);
 
             user.IsApproved = true;
 
-            userService.Save(user);
+            _userService.Save(user);
         }
 
         public IList<ContentTreeModel> ContentRoot()
         {
-            var rootContent = contentService.GetRootContent();
+            var rootContent = _contentService.GetRootContent();
 
             return rootContent.Select(root => new ContentTreeModel
             {
@@ -119,9 +124,54 @@ namespace UmbracoWebServices.Services
             }).ToList();
         }
 
+        public IList<ContentTreeModel> ContentRoot(int uid)
+        {
+            IList<ContentTreeModel> rtn = new List<ContentTreeModel>();
+         
+            var userDefaultPerms = GetDefaultUserPermissions(uid);
+
+            var rootContent = _contentService.GetRootContent();
+
+            foreach (var root in rootContent)
+            {
+                var item = new ContentTreeModel
+                {
+                    PageId = root.Id,
+                    PageName = root.Name,
+                    RootId = root.Id,
+                    Published = root.Published,
+                    PublishedDate = root.UpdateDate,
+                    UserPermissions = _contentService.GetPermissionsForEntity(root).Select(s => s.AssignedPermissions)
+                };
+
+                var perms =
+                    _contentService.GetPermissionsForEntity(root)
+                        .Where(t => t.UserId == uid)
+                        .Select(s => s.AssignedPermissions).ToList();
+                if (!perms.Any())
+                {
+                    perms = userDefaultPerms;
+                }
+                item.UserPermissions = perms;
+                rtn.Add(item);
+            }
+            return rtn;
+
+            //return rootContent.Select(root => new ContentTreeModel
+            //{
+            //    PageId = root.Id,
+            //    PageName = root.Name,
+            //    RootId = root.Id,
+            //    Published = root.Published,
+            //    PublishedDate = root.UpdateDate,
+            //    UserPermissions = _contentService.GetPermissionsForEntity(root).Select(s => s.AssignedPermissions)
+            //}).ToList();
+        }
+
         public IList<ContentTreeModel> ContentChild(int root)
         {
-            var childrenOfRoot = contentService.GetChildren(root);
+
+            var childrenOfRoot = _contentService.GetChildren(root);
 
             return childrenOfRoot.Select(child => new ContentTreeModel
             {
@@ -130,88 +180,303 @@ namespace UmbracoWebServices.Services
                 RootId = root,
                 PageName = child.Name,
                 Published = child.Published,
-                PublishedDate = child.UpdateDate
+                PublishedDate = child.UpdateDate,
+                UserPermissions = _contentService.GetPermissionsForEntity(child).Select(s => s.AssignedPermissions)
             }).ToList();
         }
 
+        public IList<ContentTreeModel> ContentChild(int root, int uid)
+        {
+            var userDefaultPerms = GetDefaultUserPermissions(uid);
+
+            var childrenOfRoot = _contentService.GetChildren(root);
+
+            IList<ContentTreeModel> rtn = new List<ContentTreeModel>();
+
+            foreach (var child in childrenOfRoot)
+            {
+                var item = new ContentTreeModel
+                {
+                    PageId = child.Id,
+                    ParentId = child.ParentId,
+                    RootId = root,
+                    PageName = child.Name,
+                    Published = child.Published,
+                    PublishedDate = child.UpdateDate
+                };
+
+                var perms =
+                    _contentService.GetPermissionsForEntity(child)
+                        .Where(t => t.UserId == uid)
+                        .Select(s => s.AssignedPermissions).ToList();
+                if (!perms.Any())
+                {
+                    perms = userDefaultPerms;
+                }
+                item.UserPermissions = perms;
+                rtn.Add(item);
+            }
+            return rtn;
+
+            //return childrenOfRoot.Select(child => new ContentTreeModel
+            //{
+            //    PageId = child.Id,
+            //    ParentId = child.ParentId,
+            //    RootId = root,
+            //    PageName = child.Name,
+            //    Published = child.Published,
+            //    PublishedDate = child.UpdateDate,
+            //    UserPermissions = _contentService.GetPermissionsForEntity(child).Where(t => t.UserId == uid)
+            //}).ToList();
+        }
+
+        private List<string[]> GetDefaultUserPermissions(int userId)
+        {
+            var user = _userService.GetUserById(userId);
+            var userDefaultPerms = new List<string[]>();
+            foreach (var perm in user.DefaultPermissions)
+            {
+                var val = new string[1];
+                val[0] = perm;
+                userDefaultPerms.Add(val);
+            }
+
+            return userDefaultPerms;
+        }
+
+        /// <summary>
+        /// Set default permissions for user on supplied page
+        /// </summary>
+        /// <param name="model">PermissionsModel contains user Id and page Id</param>
         public void SetUserPagePermissions(PermissionsModel model)
         {
-            var content = contentService.GetById(model.PageId);
+            // I = Culture and Hostnames
+            // Z = Audit Trail
+            // F = Browse Node
+            // 7 = Change Document Type
+            // O = Copy
+            // D = Delete
+            // M = Move
+            // C = Create
+            // P = Public access
+            // U = Publish
+            // R = Permissions
+            // K = Rollback
+            // 5 = Send To Translation
+            // S = Sort
+            // H = Send to publish
+            // 4 = Translate
+            // A = Update
 
-            var modelList = new List<int> { model.UserId };
+            // Get default permissions list from web.config
+            var defaultPerms = ConfigurationManager.AppSettings["defaultUserPermissions"];
+            var permissionList = defaultPerms.ToCharArray();
 
-            var permissionList = new char[6];
-
-            permissionList[0] = '7';
-            permissionList[1] = 'A';
-            permissionList[2] = 'C';
-            permissionList[3] = 'F';
-            permissionList[4] = 'K';
-            permissionList[5] = 'U';
-
-            foreach (var permission in permissionList)
-            {
-                contentService.AssignContentPermission(content, permission, modelList);
-            }
+            ReplaceUserPagePermissions(model.UserId, model.PageId, permissionList);
         }
 
+        /// <summary>
+        /// Remove user permissions on page by setting user default permissions
+        /// default permissions are defined on UserType in Umbraco
+        /// </summary>
+        /// <param name="model">PermissionsModel contains user Id and page Id</param>
         public void RemoveUserPagePermissions(PermissionsModel model)
         {
-            // commented out the code for the new API as this does not work - bugg logged
-            // will use the old API for now.
+            // Set user permissions for page to default
+            var user = _userService.GetUserById(model.UserId);
 
-            //var content = contentService.GetById(model.PageId);
+            string permList = null;
+            foreach (var perm in user.DefaultPermissions)
+            {
+                permList += perm;
+            }
 
-            //var modelList = new List<int> { model.UserId };
-
-            //var permissionList = new char[6];
-
-            //permissionList[0] = '-';
-            //permissionList[1] = '-';
-            //permissionList[2] = '-';
-            //permissionList[3] = '-';
-            //permissionList[4] = '-';
-            //permissionList[5] = '-';
-
-            //foreach (var permission in permissionList)
-            //{
-            //    contentService.AssignContentPermission(content, permission, modelList);
-            //}
-
-            umbraco.BusinessLogic.Permission.DeletePermissions(model.UserId, model.PageId);
+            if (permList != null) ReplaceUserPagePermissions(user.Id, model.PageId, permList.ToCharArray());
         }
 
+        /// <summary>
+        /// Replace current permissions for user on page with supplied permissions
+        /// </summary>
+        /// <param name="userId">Target user</param>
+        /// <param name="pageId">Target page</param>
+        /// <param name="perms">New permission set</param>
+        private void ReplaceUserPagePermissions(int userId, int pageId, IEnumerable<char> perms)
+        {
+            _userService.ReplaceUserPermissions(userId, perms, pageId);
+        }
+
+        /// <summary>
+        /// Check permissions for selected user
+        /// Do not include "Browse" as this is the minimum and indicates NO Permission for a page
+        /// </summary>
+        /// <param name="userId">Target user</param>
+        /// <returns>User page permission set</returns>
         public IList<PermissionsModel> CheckUserPermissions(int userId)
         {
-            var user = userService.GetUserById(userId);
+            //var ut = _userService.GetUserTypeByAlias("NewUser");
+            //var per = ut.Permissions;
 
-            var userPermissions = userService.GetPermissions(user);
+            var user = _userService.GetUserById(userId);
 
-            return userPermissions.Select(page => new PermissionsModel { UserId = page.UserId, FullName = userService.GetUserById(page.UserId).Name, EmailAddress = userService.GetUserById(page.UserId).Email, PageId = page.EntityId, PageName = contentService.GetById(page.EntityId).Name }).ToList();
+            IList<PermissionsModel> permList = new List<PermissionsModel>();
+            
+            // This only gets permissions that have been explicitly set, unless a page(s) Id is passed then it returns
+            // at least the default permissions
+            var userPermissions = _userService.GetPermissions(user);
+
+            foreach (var userPerm in userPermissions)
+            {
+                // Assume: 
+                // if no permissions at all, then there will be only one element which will contain a "-"
+                // If only the default permission then there will only be one element which will contain "F" (Browse Node)
+                if (userPerm.AssignedPermissions.Count() > 1 || (userPerm.AssignedPermissions[0] != "-" && userPerm.AssignedPermissions[0] != "F"))
+                {
+                    var pUser = _userService.GetUserById(userPerm.UserId);
+
+                    var p = new PermissionsModel
+                    {
+                        UserId = userPerm.UserId,
+                        FullName = pUser.Name,
+                        EmailAddress = pUser.Email,
+                        PageId = userPerm.EntityId,
+                        PageName = _contentService.GetById(userPerm.EntityId).Name,
+                        PagePath = PageBreadcrumb(userPerm.EntityId)
+                    };
+
+                    permList.Add(p);
+                }
+            }
+
+            return permList;
         }
 
+        /// <summary>
+        /// Get assigned permissions for a specific page
+        /// </summary>
+        /// <param name="url">URL of page to check</param>
+        /// <returns>Permissions set</returns>
+        public IList<PermissionsModel> CheckPagePermissions(string url)
+        {
+            var pageId = umbraco.uQuery.GetNodeIdByUrl(url);
+            var page = _contentService.GetById(pageId);
+            var perms = _contentService.GetPermissionsForEntity(page);
+
+            IList<PermissionsModel> permList = new List<PermissionsModel>();
+
+            foreach (var perm in perms)
+            {
+                var pUser = _userService.GetUserById(perm.UserId);
+                var p = new PermissionsModel
+                {
+                    UserId = perm.UserId,
+                    FullName = pUser.Name,
+                    EmailAddress = pUser.Email,
+                    PageId = pageId,
+                    PageName = page.Name
+                };
+
+                permList.Add(p);
+                
+            }
+            return permList;
+        }
+
+        /// <summary>
+        /// Find all pages that do not have any Web Authors assigned
+        /// </summary>
+        /// <returns>Content Items</returns>
+        public IList<PermissionsModel> GetPagesWithoutAuthor()
+        {
+            var webAuthorUserType = ConfigurationManager.AppSettings["WebAuthorUserType"];
+
+            int totalRecords;
+            var userType = _userService.GetUserTypeByAlias(webAuthorUserType);
+            var users = _userService.GetAll(0,100,out totalRecords).Where(t => t.UserType == userType);
+
+            IList<PermissionsModel> permList = new List<PermissionsModel>();
+            var rootContent = _contentService.GetRootContent().FirstOrDefault();
+
+            if (rootContent == null) return null;
+
+            var allContent = rootContent.Descendants();
+
+            foreach (var contentItem in allContent)
+            {
+                IEnumerable<EntityPermission> perms = _contentService.GetPermissionsForEntity(contentItem);
+
+                var u = users.First().use
+                if (!perms.Where(p => users.Intersect(p.UserId)))
+                {
+                    var p = new PermissionsModel
+                    {
+                        PageId = contentItem.Id,
+                        PageName = contentItem.Name,
+                        PagePath = PageBreadcrumb(contentItem.Id)
+                    };
+
+                    permList.Add(p);
+                }
+            }
+
+            return permList;
+        } 
+
+        /// <summary>
+        /// Generate a breadcrumb page list to the supplied page
+        /// </summary>
+        /// <param name="nodeId">destination page</param>
+        /// <returns>Breadcrumb to supplied page</returns>
+        private string PageBreadcrumb(int nodeId)
+        {
+            var rtn = String.Empty;
+
+            var contentNode = _contentService.GetById(nodeId);
+
+            // First item will be -1 (Content),
+            // Second item will be the home page
+            // last one is the current node.
+            var path = contentNode.Path.Split(',');
+
+            if (path.Count() > 3)
+            {
+                for (var i = 2; i < path.Count() - 1; i++)
+                {
+                    var pathId = Convert.ToInt32(path[i]);
+                    var pathNode = _contentService.GetById(pathId).Name;
+
+                    rtn += String.Format("{0} / ", pathNode);
+                }
+            }
+
+            return rtn;
+        }
+
+        /// <summary>
+        /// Copy specifically assigned permissions (not default group permissions) from one user to another
+        /// </summary>
+        /// <param name="model">Source and Target users</param>
         public void ClonePermissions(PermissionsModel model)
         {
-            var sourceUser = userService.GetUserById(model.UserId);
+            var sourceUser = _userService.GetUserById(model.UserId);
 
-            var userPermissions = userService.GetPermissions(sourceUser);
+            var userPermissions = _userService.GetPermissions(sourceUser);
 
-            var modelList = new List<int> { model.TargetId };
+            var targetUser = new List<int> { model.TargetId };
 
             foreach (var permissions in userPermissions)
             {
-                var content = contentService.GetById(permissions.EntityId);
+                var content = _contentService.GetById(permissions.EntityId);
 
                 foreach (var permission in permissions.AssignedPermissions)
                 {
-                    contentService.AssignContentPermission(content, permission[0], modelList);
+                    _contentService.AssignContentPermission(content, permission[0], targetUser);
                 }
             }
         }
 
         public ContentTreeModel GetPage(int pageId)
         {
-            var page = contentService.GetById(pageId);
+            var page = _contentService.GetById(pageId);
 
             var model = new ContentTreeModel { PageName = page.Name };
 

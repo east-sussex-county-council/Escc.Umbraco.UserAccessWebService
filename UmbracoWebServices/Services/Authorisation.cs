@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Principal;
@@ -41,7 +40,7 @@ namespace UmbracoWebServices.Services
 
         private static bool AuthenticateUser(string credentials)
         {
-            bool validated = false;
+            bool validated;
             try
             {
                 var encoding = Encoding.GetEncoding("iso-8859-1");
@@ -102,7 +101,7 @@ namespace UmbracoWebServices.Services
             {
                 if (actionContext.Request.RequestUri.Scheme != Uri.UriSchemeHttps)
                 {
-                    actionContext.Response = new HttpResponseMessage(System.Net.HttpStatusCode.Forbidden)
+                    actionContext.Response = new HttpResponseMessage(HttpStatusCode.Forbidden)
                     {
                         ReasonPhrase = "HTTPS Required"
                     };

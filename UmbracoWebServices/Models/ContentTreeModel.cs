@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
 namespace UmbracoWebServices.Models
 {
@@ -18,5 +16,7 @@ namespace UmbracoWebServices.Models
         public bool Published { get; set; }
 
         public DateTime PublishedDate { get; set; }
+
+        public IEnumerable<string[]> UserPermissions { get; set; }
     }
 }

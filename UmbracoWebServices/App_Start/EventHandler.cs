@@ -9,6 +9,7 @@ using Umbraco.Core.Services;
 using Umbraco.Web;
 using UmbracoWebServices.Controllers;
 using UmbracoWebServices.Services;
+using UmbracoWebServices.Services.Interfaces;
 
 namespace UmbracoWebServices
 {
