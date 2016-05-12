@@ -33,6 +33,7 @@ namespace UmbracoWebServices
             builder.RegisterType<UserAdminService>().As<IUserAdminService>();
             builder.RegisterType<RepositoryFactory>();
             builder.RegisterType<UserService>().As<IUserService>();
+            builder.RegisterType<ContentService>().As<IContentService>();
 
             var container = builder.Build();
             DependencyResolver.SetResolver(new AutofacDependencyResolver(container));

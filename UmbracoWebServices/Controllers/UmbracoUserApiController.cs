@@ -26,7 +26,23 @@ namespace UmbracoWebServices.Controllers
         {
             try
             {
-                var users = userAdminService.LookupUser(emailaddress);
+                var users = userAdminService.LookupUserByEmail(emailaddress);
+
+                return Request.CreateResponse(HttpStatusCode.OK, users);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+            }
+        }
+
+        [HttpGet]
+        public HttpResponseMessage GetAllUsersByUsername(string username)
+        {
+            try
+            {
+                var users = userAdminService.LookupUserByUsername(username);
+
                 return Request.CreateResponse(HttpStatusCode.OK, users);
             }
             catch (Exception ex)
@@ -56,6 +72,7 @@ namespace UmbracoWebServices.Controllers
             try
             {
                 userAdminService.ResetUsersPassword(model);
+
                 return Request.CreateResponse(HttpStatusCode.OK);
             }
             catch (Exception ex)
@@ -70,6 +87,7 @@ namespace UmbracoWebServices.Controllers
             try
             {
                 userAdminService.CreateUmbracoUser(model);
+
                 return Request.CreateResponse(HttpStatusCode.OK);
             }
             catch (Exception ex)
@@ -84,6 +102,7 @@ namespace UmbracoWebServices.Controllers
             try
             {
                 userAdminService.DisableUser(model);
+
                 return Request.CreateResponse(HttpStatusCode.OK);
             }
             catch (Exception ex)
@@ -98,7 +117,38 @@ namespace UmbracoWebServices.Controllers
             try
             {
                 userAdminService.EnableUser(model);
+
                 return Request.CreateResponse(HttpStatusCode.OK);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadGateway, ex);
+            }
+        }
+
+        [HttpGet]
+        public HttpResponseMessage GetContentTree()
+        {
+            try
+            {
+                var tree = userAdminService.ContentRoot();
+
+                return Request.CreateResponse(HttpStatusCode.OK, tree);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadGateway, ex);
+            }
+        }
+
+        [HttpGet]
+        public HttpResponseMessage GetContentTree(int id)
+        {
+            try
+            {
+                var tree = userAdminService.ContentChild(id);
+
+                return Request.CreateResponse(HttpStatusCode.OK, tree);
             }
             catch (Exception ex)
             {

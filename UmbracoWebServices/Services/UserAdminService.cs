@@ -1,29 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Umbraco.Core.Models.Membership;
 using Umbraco.Core.Persistence.Querying;
-using UmbracoWebServices.Models;
 using Umbraco.Core.Services;
-using Umbraco.Core.Persistence;
-using User = umbraco.BusinessLogic.User;
-using System.Web.Security;
+using UmbracoWebServices.Models;
 
 namespace UmbracoWebServices.Services
 {
     public class UserAdminService : IUserAdminService
     {
-        private IUserService userService;
+        private readonly IUserService userService;
+        private readonly IContentService contentService;
 
-        public UserAdminService(IUserService userService)
+        public UserAdminService(IUserService userService, IContentService contentService)
         {
             this.userService = userService;
+            this.contentService = contentService;
         }
 
-        public IList<UmbracoUserModel> LookupUser(string emailAddress)
+        public IList<UmbracoUserModel> LookupUserByEmail(string emailAddress)
         {
             int totalRecords;
-            var modelList = userService.FindByEmail(emailAddress, 0, 4, out totalRecords, StringPropertyMatchType.Exact)
+            var modelList = userService.FindByEmail(emailAddress, 0, 10, out totalRecords, StringPropertyMatchType.Exact)
+                .Select(x => new UmbracoUserModel()
+                {
+                    userName = x.Username,
+                    fullName = x.Name,
+                    emailAddress = x.Email,
+                    UserId = x.Id,
+                    Lock = x.IsLockedOut
+                }).ToList();
+
+            return modelList;
+        }
+
+        public IList<UmbracoUserModel> LookupUserByUsername(string username)
+        {
+            int totalRecords;
+            var modelList = userService.FindByUsername(username, 0, 10, out totalRecords, StringPropertyMatchType.Exact)
                 .Select(x => new UmbracoUserModel()
                 {
                     userName = x.Username,
@@ -56,6 +70,10 @@ namespace UmbracoWebServices.Services
             //userService.SavePassword(user, model.NewPassword);
 
             //var x = (Umbraco.Core.Models.Membership.User) userService.SavePassword(null, null);
+
+            var user = userService.GetUserById(model.UserId);
+
+            userService.SavePassword(user, model.NewPassword);
         }
 
         public void DisableUser(UmbracoUserModel model)
@@ -66,6 +84,35 @@ namespace UmbracoWebServices.Services
         public void EnableUser(UmbracoUserModel model)
         {
             userService.GetUserById(model.UserId).IsLockedOut = false;
+        }
+
+        public IList<ContentTreeModel> ContentRoot()
+        {
+            var rootContent = contentService.GetRootContent();
+
+            return rootContent.Select(root => new ContentTreeModel
+            {
+                Id = root.Id,
+                Name = root.Name,
+                RootId = root.Id,
+                Published = root.Published,
+                PublishedDate = root.UpdateDate
+            }).ToList();
+        }
+
+        public IList<ContentTreeModel> ContentChild(int root)
+        {
+            var childrenOfRoot = contentService.GetChildren(root);
+
+            return childrenOfRoot.Select(child => new ContentTreeModel
+            {
+                Id = child.Id,
+                ParentId = child.ParentId,
+                RootId = root,
+                Name = child.Name,
+                Published = child.Published,
+                PublishedDate = child.UpdateDate
+            }).ToList();
         }
     }
 }
