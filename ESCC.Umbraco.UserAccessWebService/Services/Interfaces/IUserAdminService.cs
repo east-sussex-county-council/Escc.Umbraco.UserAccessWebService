@@ -48,5 +48,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services.Interfaces
         IContent GetContentNode(Int32 pageId);
 
         IList<UmbracoUserModel> LookupWebEditors();
+
+        PageLinksModel GetPageInboundLinks(string url);
     }
 }

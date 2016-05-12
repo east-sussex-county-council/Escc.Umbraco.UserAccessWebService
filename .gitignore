@@ -59,12 +59,13 @@ _ReSharper*/
 */css/*
 */usercontrols/*
 
-# LocalGov Starter Kit
+# LocalGov Starter Kit and other packages
 */img/*
 */css/*
 */fonts/*
 */scripts/*
 */App_Plugins/*
+
 [Ww]eb.config
 [Ww]eb.Debug.config
 [Ww]eb.Release.config

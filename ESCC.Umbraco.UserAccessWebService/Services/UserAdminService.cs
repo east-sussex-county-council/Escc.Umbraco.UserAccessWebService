@@ -4,7 +4,9 @@ using System.Configuration;
 using System.Linq;
 using ESCC.Umbraco.UserAccessWebService.Models;
 using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
+using Examine;
 using umbraco;
+using Umbraco.Core;
 using Umbraco.Core.Models;
 using Umbraco.Core.Persistence.Querying;
 using Umbraco.Core.Services;
@@ -26,7 +28,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        /// Retrieve user info for provided email address
+        ///     Retrieve user info for provided email address
         /// </summary>
         /// <param name="emailAddress">Email address to search for</param>
         /// <returns>User details</returns>
@@ -35,7 +37,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             int totalRecords;
             var modelList =
                 _userService.FindByEmail(emailAddress, 0, 10, out totalRecords, StringPropertyMatchType.Exact)
-                    .Select(x => new UmbracoUserModel()
+                    .Select(x => new UmbracoUserModel
                     {
                         UserName = x.Username,
                         FullName = x.Name,
@@ -49,29 +51,30 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        /// Retrieve user info for provided user name
+        ///     Retrieve user info for provided user name
         /// </summary>
         /// <param name="username">Username to search for</param>
         /// <returns>User details</returns>
         public IList<UmbracoUserModel> LookupUserByUsername(string username)
         {
             int totalRecords;
-            var modelList = _userService.FindByUsername(username, 0, 10, out totalRecords, StringPropertyMatchType.Exact)
-                .Select(x => new UmbracoUserModel()
-                {
-                    UserName = x.Username,
-                    FullName = x.Name,
-                    EmailAddress = x.Email,
-                    UserId = x.Id,
-                    UserLocked = !x.IsApproved,
-                    IsWebAuthor = (x.UserType.Alias == _webAuthorUserType)
-                }).ToList();
+            var modelList =
+                _userService.FindByUsername(username, 0, 10, out totalRecords, StringPropertyMatchType.Exact)
+                    .Select(x => new UmbracoUserModel
+                    {
+                        UserName = x.Username,
+                        FullName = x.Name,
+                        EmailAddress = x.Email,
+                        UserId = x.Id,
+                        UserLocked = !x.IsApproved,
+                        IsWebAuthor = (x.UserType.Alias == _webAuthorUserType)
+                    }).ToList();
 
             return modelList;
         }
 
         /// <summary>
-        /// Retrieve user info for provided user ID
+        ///     Retrieve user info for provided user ID
         /// </summary>
         /// <param name="id">User Id to search for</param>
         /// <returns>User details</returns>
@@ -93,13 +96,14 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        /// Create a new user using the information provided. Then grant access to the necessary admin sections
+        ///     Create a new user using the information provided. Then grant access to the necessary admin sections
         /// </summary>
         /// <param name="model">New user information</param>
         /// <returns>Updated User Model containing new User Id</returns>
         public UmbracoUserModel CreateUmbracoUser(UmbracoUserModel model)
         {
-            var user = _userService.CreateWithIdentity(model.UserName, model.EmailAddress, Guid.NewGuid().ToString(), _webAuthorUserType);
+            var user = _userService.CreateWithIdentity(model.UserName, model.EmailAddress, Guid.NewGuid().ToString(),
+                _webAuthorUserType);
 
             user.Name = model.FullName;
 
@@ -118,7 +122,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        /// Change the password for a selected user.
+        ///     Change the password for a selected user.
         /// </summary>
         /// <param name="model">User and password information</param>
         public void ResetUsersPassword(PasswordResetModel model)
@@ -129,7 +133,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        /// Disable users account in Umbraco, stopping them from logging into the backend
+        ///     Disable users account in Umbraco, stopping them from logging into the backend
         /// </summary>
         /// <param name="model">User data</param>
         public void DisableUser(UmbracoUserModel model)
@@ -142,7 +146,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        /// Enable users account in Umbraco, allowing them to log into the backend
+        ///     Enable users account in Umbraco, allowing them to log into the backend
         /// </summary>
         /// <param name="model">User data</param>
         public void EnableUser(UmbracoUserModel model)
@@ -155,7 +159,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        /// Get data from the root / home content node
+        ///     Get data from the root / home content node
         /// </summary>
         /// <returns>Root node data</returns>
         public IList<ContentTreeModel> ContentRoot()
@@ -173,14 +177,14 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        /// Get data from the root / home content node
+        ///     Get data from the root / home content node
         /// </summary>
         /// <param name="uid"></param>
         /// <returns></returns>
         public IList<ContentTreeModel> ContentRoot(int uid)
         {
             IList<ContentTreeModel> rtn = new List<ContentTreeModel>();
-         
+
             var userDefaultPerms = GetDefaultUserPermissions(uid);
 
             var rootContent = _contentService.GetRootContent().OrderBy(o => o.SortOrder);
@@ -276,7 +280,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        /// Set default permissions for user on supplied page
+        ///     Set default permissions for user on supplied page
         /// </summary>
         /// <param name="model">PermissionsModel contains user Id and page Id</param>
         public void SetUserPagePermissions(PermissionsModel model)
@@ -307,8 +311,8 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        /// Remove user permissions on page by setting user default permissions
-        /// default permissions are defined on UserType in Umbraco
+        ///     Remove user permissions on page by setting user default permissions
+        ///     default permissions are defined on UserType in Umbraco
         /// </summary>
         /// <param name="model">PermissionsModel contains user Id and page Id</param>
         public void RemoveUserPagePermissions(PermissionsModel model)
@@ -326,7 +330,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        /// Replace current permissions for user on page with supplied permissions
+        ///     Replace current permissions for user on page with supplied permissions
         /// </summary>
         /// <param name="userId">Target user</param>
         /// <param name="pageId">Target page</param>
@@ -337,8 +341,8 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        /// Check permissions for selected user
-        /// Do not include "Browse" as this is the minimum and indicates NO Permission for a page
+        ///     Check permissions for selected user
+        ///     Do not include "Browse" as this is the minimum and indicates NO Permission for a page
         /// </summary>
         /// <param name="userId">Target user</param>
         /// <returns>User page permission set</returns>
@@ -348,7 +352,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
             var user = _userService.GetUserById(userId);
 
             IList<PermissionsModel> permList = new List<PermissionsModel>();
-            
+
             // This only gets permissions that have been explicitly set, unless a page(s) Id is passed then it returns
             // at least the default permissions
             var userPermissions = _userService.GetPermissions(user);
@@ -358,7 +362,8 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                 // Assume: 
                 // if no permissions at all, then there will be only one element which will contain a "-"
                 // If only the default permission then there will only be one element which will contain "F" (Browse Node)
-                if (userPerm.AssignedPermissions.Count() > 1 || (userPerm.AssignedPermissions[0] != "-" && userPerm.AssignedPermissions[0] != "F"))
+                if (userPerm.AssignedPermissions.Count() > 1 ||
+                    (userPerm.AssignedPermissions[0] != "-" && userPerm.AssignedPermissions[0] != "F"))
                 {
                     var contentNode = _contentService.GetById(userPerm.EntityId);
                     if (contentNode.Trashed) continue;
@@ -386,7 +391,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        /// Get assigned permissions for a specific page
+        ///     Get assigned permissions for a specific page
         /// </summary>
         /// <param name="page">page to check</param>
         /// <returns>Permissions set</returns>
@@ -427,7 +432,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        /// Get Umbraco node by url
+        ///     Get Umbraco node by url
         /// </summary>
         /// <param name="url">URL of page to get</param>
         /// <returns>Found page</returns>
@@ -440,7 +445,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        /// Get Umbraco node by Id
+        ///     Get Umbraco node by Id
         /// </summary>
         /// <param name="pageId">Id of page to get</param>
         /// <returns>Found page</returns>
@@ -450,7 +455,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        /// Get list of Web Editors
+        ///     Get list of Web Editors
         /// </summary>
         /// <returns>List of Web Editors</returns>
         public IList<UmbracoUserModel> LookupWebEditors()
@@ -475,7 +480,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                     IsWebAuthor = false,
                     UserLocked = !webEditor.IsApproved
                 };
-          
+
                 webEditorsList.Add(ed);
             }
 
@@ -483,7 +488,79 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        /// Find all pages that do not have any Web Authors assigned
+        ///     Get a list of pages that link INTO the supplied page
+        /// </summary>
+        /// <param name="url">Url of linked into page</param>
+        /// <returns>List of linking pages</returns>
+        public PageLinksModel GetPageInboundLinks(string url)
+        {
+            var pageDetails = new PageLinksModel();
+
+            // Get the node
+            var page = GetContentNode(url);
+
+            if (page == null) return pageDetails;
+
+            // Save page details
+            pageDetails.PageId = page.Id;
+            pageDetails.PageName = page.Name;
+            pageDetails.PageUrl = library.NiceUrl(page.Id);
+
+            // Search Examine index (Umbraco)
+            GetPageInboundLinks_Examine(pageDetails.InboundLinksLocal, page);
+
+            // Search Redirects database
+
+            // Search Inspyder extract
+
+            // Return data
+            return pageDetails;
+        }
+
+        private void GetPageInboundLinks_Examine(List<PageInLinkModel> links, IContent page)
+        {            
+            var pageId = page.Id.ToString();
+            var searcher = ExamineManager.Instance.SearchProviderCollection["NodeLinksSearcher"];
+            var searchCriteria = searcher.CreateSearchCriteria();
+
+            var query = searchCriteria.Field("NodeLinksTo", pageId).Compile();
+            var searchResults = searcher.Search(query);
+
+            foreach (var inlink in searchResults)
+            {
+                // Get the Node
+                var node = _contentService.GetById(inlink.Id);
+                // skip if node was not found
+                if (node == null) continue;
+                //skip if node is in Recycle Bin
+                if (node.Trashed) continue;
+
+                // Get node details and add it to the list
+                var nodeId = inlink.Id;
+                var nodeName = node.Name;
+
+                var pageUrl = node.Published ? library.NiceUrl(nodeId) : "[Currently unpublished]";
+
+                // The page itself may be published, but its Url will be "#" if a parent node is unpublished
+                if (pageUrl == "#")
+                {
+                    pageUrl = "[Parent unpublished]";
+                }
+
+                var link = new PageInLinkModel { PageId = nodeId, PageName = nodeName, PageUrl = pageUrl };
+
+                // Don't add if already in the list
+                if (links.Any(l => l.PageId == link.PageId))
+                {
+                    continue;
+                }
+
+                links.Add(link);
+            }
+        }
+
+        /// <summary>
+        ///     Find all pages that do not have any Web Authors assigned
         /// </summary>
         /// <returns>Content Items</returns>
         public IList<PermissionsModel> GetPagesWithoutAuthor()
@@ -505,7 +582,8 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
                     // Assume: 
                     // if no permissions at all, then there will be only one element which will contain a "-"
                     // If only the default permission then there will only be one element which will contain "F" (Browse Node)
-                    if (userPerm.AssignedPermissions.Count() > 1 || (userPerm.AssignedPermissions[0] != "-" && userPerm.AssignedPermissions[0] != "F"))
+                    if (userPerm.AssignedPermissions.Count() > 1 ||
+                        (userPerm.AssignedPermissions[0] != "-" && userPerm.AssignedPermissions[0] != "F"))
                     {
                         if (!webAuthorPages.Contains(userPerm.EntityId))
                         {
@@ -534,7 +612,8 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
 
                 permList.Add(rn);
 
-                var allContent = rootNode.Descendants().Where(a => !webAuthorPages.Contains(a.Id)).OrderBy(o => o.SortOrder);
+                var allContent =
+                    rootNode.Descendants().Where(a => !webAuthorPages.Contains(a.Id)).OrderBy(o => o.SortOrder);
 
                 foreach (var contentItem in allContent)
                 {
@@ -550,14 +629,13 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
 
                     permList.Add(p);
                 }
-                
             }
 
             return permList.OrderBy(o => o.PagePath).ToList();
         }
 
         /// <summary>
-        /// Generate a breadcrumb page list to the supplied page
+        ///     Generate a breadcrumb page list to the supplied page
         /// </summary>
         /// <param name="contentNode"></param>
         /// <returns>Breadcrumb to supplied page</returns>
@@ -588,7 +666,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         }
 
         /// <summary>
-        /// Copy specifically assigned permissions (not default group permissions) from one user to another
+        ///     Copy specifically assigned permissions (not default group permissions) from one user to another
         /// </summary>
         /// <param name="model">Source and Target users</param>
         public void ClonePermissions(PermissionsModel model)
@@ -597,7 +675,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
 
             var userPermissions = _userService.GetPermissions(sourceUser);
 
-            var targetUser = new List<int> { model.TargetId };
+            var targetUser = new List<int> {model.TargetId};
 
             foreach (var permissions in userPermissions)
             {
@@ -614,7 +692,7 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         {
             var page = _contentService.GetById(pageId);
 
-            var model = new ContentTreeModel { PageName = page.Name };
+            var model = new ContentTreeModel {PageName = page.Name};
 
             return model;
         }

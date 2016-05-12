@@ -345,5 +345,20 @@ namespace ESCC.Umbraco.UserAccessWebService.Controllers
                 return Request.CreateErrorResponse(HttpStatusCode.BadGateway, ex);
             }
         }
+
+        [HttpGet]
+        public HttpResponseMessage GetPageInboundLinks(string url)
+        {
+            try
+            {
+                var inboundLinks = _userAdminService.GetPageInboundLinks(url);
+
+                return Request.CreateResponse(HttpStatusCode.OK, inboundLinks);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadGateway, ex);
+            }
+        }
     }
 }
