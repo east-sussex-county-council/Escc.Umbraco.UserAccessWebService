@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ESCC.Umbraco.UserAccessWebService.Models
+namespace Escc.Umbraco.UserAccessWebService.Models
 {
     public class UserPageModel
     {

@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
-using ESCC.Umbraco.UserAccessWebService.Models;
-using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
+using Escc.Umbraco.UserAccessWebService.Models;
+using Escc.Umbraco.UserAccessWebService.Services.Interfaces;
 using Examine;
 using Newtonsoft.Json;
 using umbraco;
@@ -12,7 +12,7 @@ using Umbraco.Core.Persistence.Querying;
 using Umbraco.Core.Services;
 using Umbraco.Web;
 
-namespace ESCC.Umbraco.UserAccessWebService.Services
+namespace Escc.Umbraco.UserAccessWebService.Services
 {
     public class UserAdminService : IUserAdminService
     {

@@ -1,7 +1,7 @@
 ﻿using System.Web.Mvc;
 using System.Web.Routing;
 
-namespace ESCC.Umbraco.UserAccessWebService
+namespace Escc.Umbraco.UserAccessWebService
 {
     public class RouteConfig
     {

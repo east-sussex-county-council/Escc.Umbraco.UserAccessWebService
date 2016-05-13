@@ -4,7 +4,7 @@
 
 Copy the following DLLs to the bin folder:
 
-* ESCC.Umbraco.UserAccessWebService.dll
+* Escc.Umbraco.UserAccessWebService.dll
 * Autofac.dll
 
 Setup a User Type for web authors, if necessary, in Umbraco admin.
@@ -22,7 +22,7 @@ Add / alter the following key to enable Http Authentication:
 
 	<system.webServer>
 	    <modules>
-	        <add name="BasicAuthHttpModule" type="ESCC.Umbraco.UserAccessWebService.Services.Authorisation, ESCC.Umbraco.UserAccessWebService" />
+	        <add name="BasicAuthHttpModule" type="Escc.Umbraco.UserAccessWebService.Services.Authorisation, Escc.Umbraco.UserAccessWebService" />
 	    </modules>
 	</system.webServer>
 

@@ -3,22 +3,23 @@
   <PropertyGroup>
     <ProjectGuid>7f9aeea3-4592-475e-8a50-4512d9e32e61</ProjectGuid>
     <OutputPath>Bin\</OutputPath>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <NuBuildVersionSource>Manual</NuBuildVersionSource>
     <NuBuildVersionFileName>True</NuBuildVersionFileName>
     <NuBuildAddBinariesToSubfolder>False</NuBuildAddBinariesToSubfolder>
     <NuBuildIncludePdbs>False</NuBuildIncludePdbs>
+    <Name>Escc.Umbraco.UserAccessWebService.NuGet</Name>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="ESCC.Umbraco.UserAccessWebService.nuspec" />
+    <Compile Include="Escc.Umbraco.UserAccessWebService.nuspec" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ESCC.Umbraco.UserAccessWebService\ESCC.Umbraco.UserAccessWebService.csproj">
-      <Name>ESCC.Umbraco.UserAccessWebService</Name>
+    <ProjectReference Include="..\Escc.Umbraco.UserAccessWebService\Escc.Umbraco.UserAccessWebService.csproj">
+      <Name>Escc.Umbraco.UserAccessWebService</Name>
       <Project>{83f4c481-878f-463b-9300-7ba888fc3e97}</Project>
       <Private>True</Private>
     </ProjectReference>

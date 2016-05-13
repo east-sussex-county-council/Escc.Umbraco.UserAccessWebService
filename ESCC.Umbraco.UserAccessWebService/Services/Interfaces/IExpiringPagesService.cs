@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using ESCC.Umbraco.UserAccessWebService.Models;
+using Escc.Umbraco.UserAccessWebService.Models;
 
-namespace ESCC.Umbraco.UserAccessWebService.Services.Interfaces
+namespace Escc.Umbraco.UserAccessWebService.Services.Interfaces
 {
     public interface IExpiringPagesService
     {

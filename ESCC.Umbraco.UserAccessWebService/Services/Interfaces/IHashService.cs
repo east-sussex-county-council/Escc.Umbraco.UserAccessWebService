@@ -1,4 +1,4 @@
-﻿namespace ESCC.Umbraco.UserAccessWebService.Services.Interfaces
+﻿namespace Escc.Umbraco.UserAccessWebService.Services.Interfaces
 {
     public interface IHashService
     {

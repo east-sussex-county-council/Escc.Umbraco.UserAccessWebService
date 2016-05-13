@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ESCC.Umbraco.UserAccessWebService.Models
+namespace Escc.Umbraco.UserAccessWebService.Models
 {
     /// <summary>
     /// Contains details of links into a page from multiple sources

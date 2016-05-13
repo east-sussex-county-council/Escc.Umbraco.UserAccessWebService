@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ESCC.Umbraco.UserAccessWebService.Models;
-using ESCC.Umbraco.UserAccessWebService.Services.Interfaces;
+using Escc.Umbraco.UserAccessWebService.Models;
+using Escc.Umbraco.UserAccessWebService.Services.Interfaces;
 using Umbraco.Core;
 using Umbraco.Core.Models;
 using Umbraco.Core.Models.Membership;
 using Umbraco.Core.Services;
 using Umbraco.Web;
 
-namespace ESCC.Umbraco.UserAccessWebService.Services
+namespace Escc.Umbraco.UserAccessWebService.Services
 {
     public class ExpiringPagesService : IExpiringPagesService
     {

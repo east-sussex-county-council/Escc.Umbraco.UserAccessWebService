@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace ESCC.Umbraco.UserAccessWebService.Models
+namespace Escc.Umbraco.UserAccessWebService.Models
 {
     public class PasswordResetModel
     {

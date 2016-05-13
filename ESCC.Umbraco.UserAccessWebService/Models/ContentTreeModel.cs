@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ESCC.Umbraco.UserAccessWebService.Models
+namespace Escc.Umbraco.UserAccessWebService.Models
 {
     public class ContentTreeModel
     {
