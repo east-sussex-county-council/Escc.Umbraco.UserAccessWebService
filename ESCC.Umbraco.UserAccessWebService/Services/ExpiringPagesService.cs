@@ -8,6 +8,7 @@ using Umbraco.Core.Models;
 using Umbraco.Core.Models.Membership;
 using Umbraco.Core.Services;
 using Umbraco.Web;
+using Umbraco.Core.Logging;
 
 namespace ESCC.Umbraco.UserAccessWebService.Services
 {
@@ -33,8 +34,10 @@ namespace ESCC.Umbraco.UserAccessWebService.Services
         /// </returns>
         public IList<UserPagesModel> GetExpiringNodesByUser(int noOfDaysFrom)
         {
-            // Get website home page
-            var home = _contentService.GetRootContent().First();
+            // Get website home page. Sort the nodes to ensure we get the actual home page which is (must be0 the first node.
+            var home = _contentService.GetRootContent().OrderBy(o => o.SortOrder).First();
+            
+            //LogHelper.Info(this.GetType(), string.Format("home node: {0}", home.Id));
 
             // Get pages that expire within the declared period, order by expiry date
             var expiringNodes = home.Descendants().Where(nn => nn.ExpireDate > DateTime.Now && nn.ExpireDate < DateTime.Now.AddDays(noOfDaysFrom)).OrderBy(nn => nn.ExpireDate);
