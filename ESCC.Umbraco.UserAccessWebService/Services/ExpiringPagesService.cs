@@ -19,7 +19,7 @@ namespace Escc.Umbraco.UserAccessWebService.Services
         public ExpiringPagesService(IUserService userService)
         {
             _userService = userService;
-            _contentService = new ContentService();
+            _contentService = ApplicationContext.Current.Services.ContentService;
         }
 
         /// <summary>

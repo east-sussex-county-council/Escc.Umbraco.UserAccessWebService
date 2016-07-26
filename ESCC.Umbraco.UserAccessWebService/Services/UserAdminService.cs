@@ -7,6 +7,7 @@ using Escc.Umbraco.UserAccessWebService.Services.Interfaces;
 using Examine;
 using Newtonsoft.Json;
 using umbraco;
+using Umbraco.Core;
 using Umbraco.Core.Models;
 using Umbraco.Core.Persistence.Querying;
 using Umbraco.Core.Services;
@@ -23,7 +24,7 @@ namespace Escc.Umbraco.UserAccessWebService.Services
         public UserAdminService(IUserService userService)
         {
             _userService = userService;
-            _contentService = new ContentService();
+            _contentService = ApplicationContext.Current.Services.ContentService;
             _webAuthorUserType = ConfigurationManager.AppSettings["WebAuthorUserType"];
         }
 

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Escc.Umbraco.UserAccessWebService", "Escc.Umbraco.UserAccessWebService\Escc.Umbraco.UserAccessWebService.csproj", "{83F4C481-878F-463B-9300-7BA888FC3E97}"
 EndProject
@@ -9,6 +9,8 @@ Project("{E09DD79A-4488-4AB9-8D3F-A7EEE78BF432}") = "Escc.Umbraco.UserAccessWebS
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D599695A-FD27-4B3F-92FB-1B8E242E2ECE}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		LICENSE.md = LICENSE.md
 		README.md = README.md
 	EndProjectSection
 EndProject
