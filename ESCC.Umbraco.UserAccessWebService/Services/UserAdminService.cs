@@ -344,17 +344,15 @@ namespace Escc.Umbraco.UserAccessWebService.Services
                     var contentNode = _contentService.GetById(userPerm.EntityId);
                     if (contentNode.Trashed) continue;
 
-                    var pUser = _userService.GetUserById(userPerm.UserId);
-
                     var p = new PermissionsModel
                     {
                         UserId = userPerm.UserId,
-                        Username = pUser.Username,
-                        FullName = pUser.Name,
-                        EmailAddress = pUser.Email,
-                        UserLocked = !pUser.IsApproved,
+                        Username = user.Username,
+                        FullName = user.Name,
+                        EmailAddress = user.Email,
+                        UserLocked = !user.IsApproved,
                         PageId = userPerm.EntityId,
-                        PageName = _contentService.GetById(userPerm.EntityId).Name,
+                        PageName = contentNode.Name,
                         PagePath = PageBreadcrumb(contentNode),
                         PageUrl = helper.NiceUrl(contentNode.Id)
                     };
