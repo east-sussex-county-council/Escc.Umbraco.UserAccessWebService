@@ -91,6 +91,31 @@ namespace Escc.Umbraco.UserAccessWebService.Services
                     continue;
                 }
 
+                // if all Authors of a page are disabled, add page to the webStaff list
+                List<EntityPermission> disabledUsers = new List<EntityPermission>();
+                foreach (var user in nodeAuthors)
+                {
+                    var tempUser = _userService.GetUserById(user.UserId);
+                    if (!tempUser.IsApproved)
+                    {
+                        disabledUsers.Add(user);
+                    }
+                }
+                if(disabledUsers.Count == nodeAuthors.Count)
+                {
+                    userPage = new UserPageModel
+                    {
+                        PageId = expiringNode.Id,
+                        PageName = expiringNode.Name,
+                        PagePath = expiringNode.Path,
+                        PageUrl = helper.NiceUrl(expiringNode.Id),
+                        ExpiryDate = (DateTime)expiringNode.ExpireDate
+                    };
+
+                    userPages.Where(p => p.User.UserId == -1).ForEach(u => u.Pages.Add(userPage));
+                    continue;
+                }
+                
                 userPage = new UserPageModel
                 {
                     PageId = expiringNode.Id,
