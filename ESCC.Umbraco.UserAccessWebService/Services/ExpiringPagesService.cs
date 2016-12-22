@@ -33,11 +33,28 @@ namespace Escc.Umbraco.UserAccessWebService.Services
         /// </returns>
         public IList<UserPagesModel> GetExpiringNodesByUser(int noOfDaysFrom)
         {
-            // Get website home page. Sort the nodes to ensure we get the actual home page which is (must be) the first node.
-            var home = _contentService.GetRootContent().OrderBy(o => o.SortOrder).First();
-
-            // Get pages that expire within the declared period, order by expiry date
-            var expiringNodes = home.Descendants().Where(nn => nn.ExpireDate > DateTime.Now && nn.ExpireDate < DateTime.Now.AddDays(noOfDaysFrom)).OrderBy(nn => nn.ExpireDate);
+            // Get all content at the root
+            var rootnodes = _contentService.GetRootContent();
+            // Create a list to store expiring content
+            List<IContent> expiringNodes = new List<IContent>();
+            // for each content node at the root
+            foreach (var node in rootnodes)
+            {
+                // if the node is expiring within the declared period, add it to the list
+                if(node.ExpireDate > DateTime.Now && node.ExpireDate < DateTime.Now.AddDays(noOfDaysFrom))
+                {
+                    expiringNodes.Add(node);
+                }
+                // get the root nodes children that are expiring within the declared period.
+                var descendants = node.Descendants().Where(nn => nn.ExpireDate > DateTime.Now && nn.ExpireDate < DateTime.Now.AddDays(noOfDaysFrom)).OrderBy(nn => nn.ExpireDate);
+                foreach (var child in descendants)
+                {
+                    // add each one to the list
+                    expiringNodes.Add(child);
+                }
+            }
+            // once done, order by expire date.
+            expiringNodes.OrderBy(nn => nn.ExpireDate);
 
             // For each page:
             IList<UserPagesModel> userPages = new List<UserPagesModel>();
