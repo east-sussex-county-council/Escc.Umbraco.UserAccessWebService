@@ -78,7 +78,14 @@ namespace Escc.Umbraco.UserAccessWebService.Services
                 // this should not happen, but just in case...
                 if (expiringNode.ExpireDate == null) continue;
 
-                UserPageModel userPage;
+                var userPage = new UserPageModel
+                    {
+                        PageId = expiringNode.Id,
+                        PageName = expiringNode.Name,
+                        PagePath = expiringNode.Path,
+                        PageUrl = helper.NiceUrl(expiringNode.Id),
+                        ExpiryDate = (DateTime)expiringNode.ExpireDate
+                    };
 
                 // Get Web Authors with permission
                 // if no permissions at all, then there will be only one element which will contain a "-"
@@ -95,14 +102,6 @@ namespace Escc.Umbraco.UserAccessWebService.Services
                 // if no Web Authors, add this page to the WebStaff list
                 if (!nodeAuthors.Any())
                 {
-                    userPage = new UserPageModel
-                    {
-                        PageId = expiringNode.Id,
-                        PageName = expiringNode.Name,
-                        PagePath = expiringNode.Path,
-                        PageUrl = helper.NiceUrl(expiringNode.Id),
-                        ExpiryDate = (DateTime)expiringNode.ExpireDate
-                    };
 
                     userPages.Where(p => p.User.UserId == -1).ForEach(u => u.Pages.Add(userPage));
                     continue;
@@ -120,27 +119,9 @@ namespace Escc.Umbraco.UserAccessWebService.Services
                 }
                 if(disabledUsers.Count == nodeAuthors.Count)
                 {
-                    userPage = new UserPageModel
-                    {
-                        PageId = expiringNode.Id,
-                        PageName = expiringNode.Name,
-                        PagePath = expiringNode.Path,
-                        PageUrl = helper.NiceUrl(expiringNode.Id),
-                        ExpiryDate = (DateTime)expiringNode.ExpireDate
-                    };
-
                     userPages.Where(p => p.User.UserId == -1).ForEach(u => u.Pages.Add(userPage));
                     continue;
                 }
-                
-                userPage = new UserPageModel
-                {
-                    PageId = expiringNode.Id,
-                    PageName = expiringNode.Name,
-                    PagePath = expiringNode.Path,
-                    PageUrl = helper.NiceUrl(expiringNode.Id),
-                    ExpiryDate = (DateTime)expiringNode.ExpireDate
-                };
 
                 // Add the current page to each user that has edit rights
                 foreach (var author in nodeAuthors)

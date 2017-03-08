@@ -261,7 +261,7 @@ namespace Escc.Umbraco.UserAccessWebService.Controllers
             }
         }
 
-        [Authorisation.RequireHttpsAttribute]
+        //[Authorisation.RequireHttpsAttribute]
         [HttpPost]
         public HttpResponseMessage PostCloneUserPermissions(PermissionsModel model)
         {

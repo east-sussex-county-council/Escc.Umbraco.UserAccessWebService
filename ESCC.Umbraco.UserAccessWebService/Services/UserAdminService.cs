@@ -20,12 +20,16 @@ namespace Escc.Umbraco.UserAccessWebService.Services
         private readonly IContentService _contentService;
         private readonly IUserService _userService;
         private readonly string _webAuthorUserType;
+        private readonly string _homeContentTypeAlias;
 
         public UserAdminService(IUserService userService)
         {
             _userService = userService;
             _contentService = ApplicationContext.Current.Services.ContentService;
             _webAuthorUserType = ConfigurationManager.AppSettings["WebAuthorUserType"];
+            if (string.IsNullOrEmpty(_webAuthorUserType)) throw new ArgumentException(nameof(_webAuthorUserType));
+            _homeContentTypeAlias = ConfigurationManager.AppSettings["HomeContentTypeAlias"];
+            if (string.IsNullOrEmpty(_homeContentTypeAlias)) throw new ArgumentException(nameof(_homeContentTypeAlias));
         }
 
         /// <summary>
@@ -109,7 +113,7 @@ namespace Escc.Umbraco.UserAccessWebService.Services
             user.Name = model.FullName;
 
             // Set Content Start Node to the Home page.
-            var home = _contentService.GetRootContent().First(x => x.ContentType.Alias == "HomePage");
+            var home = _contentService.GetRootContent().FirstOrDefault(x => x.ContentType.Alias == _homeContentTypeAlias);
             user.StartContentId = home.Id;
 
             // Give user access to Content and Media sections
