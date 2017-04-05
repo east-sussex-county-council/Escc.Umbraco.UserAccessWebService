@@ -15,8 +15,11 @@ Add / alter the following keys in the `appSettings` section:
 	<add key="apikey" value="" />
 	<add key="defaultUserPermissions" value="ACFKU" />
 	<add key="WebAuthorUserType" value="WebAuthor" />
+	<add key="HomeContentTypeAlias" value="Home" />
 
-“apiuser” and “apikey” should be complex keys that match the values entered in the Umbraco User Access manager `web.config`.
+`apiuser` and `apikey` should be complex keys that match the values entered in the Umbraco User Access manager `web.config`.
+
+`HomeContentTypeAlias` should match the alias of the page you want to set as the root node for web authors.
 
 Add / alter the following key to enable Http Authentication:
 
