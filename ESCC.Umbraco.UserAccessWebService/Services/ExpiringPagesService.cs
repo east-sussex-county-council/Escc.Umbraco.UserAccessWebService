@@ -41,12 +41,13 @@ namespace Escc.Umbraco.UserAccessWebService.Services
             foreach (var node in rootnodes)
             {
                 // if the node is expiring within the declared period, add it to the list
-                if(node.ExpireDate > DateTime.Now && node.ExpireDate < DateTime.Now.AddDays(noOfDaysFrom))
+                // if the node has a null expire date and is published, also add it to the list as it is a neverexpiring page
+                if(node.ExpireDate > DateTime.Now && node.ExpireDate < DateTime.Now.AddDays(noOfDaysFrom) || node.ExpireDate == null && node.HasPublishedVersion == true)
                 {
                     expiringNodes.Add(node);
                 }
-                // get the root nodes children that are expiring within the declared period.
-                var descendants = node.Descendants().Where(nn => nn.ExpireDate > DateTime.Now && nn.ExpireDate < DateTime.Now.AddDays(noOfDaysFrom)).OrderBy(nn => nn.ExpireDate);
+                // get the root nodes children that are expiring within the declared period. Or have a null expiry date and are published
+                var descendants = node.Descendants().Where(nn => nn.ExpireDate > DateTime.Now && nn.ExpireDate < DateTime.Now.AddDays(noOfDaysFrom) || nn.ExpireDate == null && nn.HasPublishedVersion == true).OrderBy(nn => nn.ExpireDate);
                 foreach (var child in descendants)
                 {
                     // add each one to the list
@@ -75,16 +76,13 @@ namespace Escc.Umbraco.UserAccessWebService.Services
 
             foreach (var expiringNode in expiringNodes)
             {
-                // this should not happen, but just in case...
-                if (expiringNode.ExpireDate == null) continue;
-
                 var userPage = new UserPageModel
                     {
                         PageId = expiringNode.Id,
                         PageName = expiringNode.Name,
                         PagePath = expiringNode.Path,
                         PageUrl = helper.NiceUrl(expiringNode.Id),
-                        ExpiryDate = (DateTime)expiringNode.ExpireDate
+                        ExpiryDate = (DateTime?)expiringNode.ExpireDate
                     };
 
                 // Get Web Authors with permission
