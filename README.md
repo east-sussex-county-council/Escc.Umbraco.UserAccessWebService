@@ -16,6 +16,8 @@ Add / alter the following keys in the `appSettings` section:
 	<add key="defaultUserPermissions" value="ACFKU" />
 	<add key="WebAuthorUserType" value="WebAuthor" />
 	<add key="HomeContentTypeAlias" value="Home" />
+	<add key="AdminAccountName" value="" />
+    <add key="AdminAccountEmail" value="" />
 
 `apiuser` and `apikey` should be complex keys that match the values entered in the Umbraco User Access manager `web.config`.
 

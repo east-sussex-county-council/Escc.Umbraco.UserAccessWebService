@@ -8,6 +8,7 @@ using Umbraco.Core.Models;
 using Umbraco.Core.Models.Membership;
 using Umbraco.Core.Services;
 using Umbraco.Web;
+using System.Configuration;
 
 namespace Escc.Umbraco.UserAccessWebService.Services
 {
@@ -15,11 +16,15 @@ namespace Escc.Umbraco.UserAccessWebService.Services
     {
         private readonly IContentService _contentService;
         private readonly IUserService _userService;
+        private readonly string _adminAccountName;
+        private readonly string _adminAccountEmail;
 
         public ExpiringPagesService(IUserService userService)
         {
             _userService = userService;
             _contentService = ApplicationContext.Current.Services.ContentService;
+            _adminAccountName = ConfigurationManager.AppSettings["AdminAccountName"];
+            _adminAccountEmail = ConfigurationManager.AppSettings["AdminAccountEmail"];
         }
 
         /// <summary>
@@ -60,17 +65,17 @@ namespace Escc.Umbraco.UserAccessWebService.Services
             // For each page:
             IList<UserPagesModel> userPages = new List<UserPagesModel>();
 
-            // Create a WebStaff record. Use -1 as an Id as there won't be a valid Umbraco user with that value.
-            var webStaff = new UserPagesModel();
-            var webstaffUser = new UmbracoUserModel
+            // Create a admin account record. Use -1 as an Id as there won't be a valid Umbraco user with that value.
+            var admin = new UserPagesModel();
+            var adminUser = new UmbracoUserModel
             {
                 UserId = -1,
-                UserName = "webstaff",
-                FullName = "Web Staff",
-                EmailAddress = "webstaff@eastsussex.gov.uk"
+                UserName = _adminAccountName.Replace(" ", ""),
+                FullName = _adminAccountName,
+                EmailAddress = _adminAccountEmail
             };
-            webStaff.User = webstaffUser;
-            userPages.Add(webStaff);
+            admin.User = adminUser;
+            userPages.Add(admin);
 
             var helper = new UmbracoHelper(UmbracoContext.Current);
 
