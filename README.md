@@ -1,12 +1,5 @@
 # Umbraco User Access Web Service
 
-## Manual installation
-
-Copy the following DLLs to the bin folder:
-
-* Escc.Umbraco.UserAccessWebService.dll
-* Autofac.dll
-
 Setup a User Type for web authors, if necessary, in Umbraco admin.
 
 Add / alter the following keys in the `appSettings` section:

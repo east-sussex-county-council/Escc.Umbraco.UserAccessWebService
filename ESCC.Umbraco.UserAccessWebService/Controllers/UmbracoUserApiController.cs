@@ -14,7 +14,6 @@ namespace Escc.Umbraco.UserAccessWebService.Controllers
     [Authorize]
     public class UmbracoUserApiController : UmbracoApiController
     {
-        private readonly IExpiringPagesService _expiringPagesService;
         private readonly IUserAdminService _userAdminService;
         public readonly IUserService UserService;
 
@@ -22,23 +21,6 @@ namespace Escc.Umbraco.UserAccessWebService.Controllers
         {
             UserService = Services.UserService;
             _userAdminService = new UserAdminService(UserService);
-            _expiringPagesService = new ExpiringPagesService(UserService);
-        }
-
-        [HttpPost]
-        [HttpGet]
-        public HttpResponseMessage CheckForExpiringNodesByUser(int noOfDaysFrom)
-        {
-            try
-            {
-                var nodes = _expiringPagesService.GetExpiringNodesByUser(noOfDaysFrom);
-
-                return Request.CreateResponse(HttpStatusCode.OK, nodes);
-            }
-            catch (Exception ex)
-            {
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
-            }
         }
 
         //[Authorisation.RequireHttpsAttribute]
